@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kreator CV</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Kreator CV</h1>
+    <div class="toolbar">
+      <label class="field-inline">Szablon
+        <select id="template">
+          <option value="modern">Nowoczesny</option>
+          <option value="classic">Klasyczny</option>
+          <option value="minimal">Minimalistyczny</option>
+        </select>
+      </label>
+      <label class="field-inline">Kolor
+        <input type="color" id="accent" value="#2563eb">
+      </label>
+      <button type="button" id="btn-sample" class="btn">Przykład</button>
+      <button type="button" id="btn-export" class="btn">Eksport JSON</button>
+      <label class="btn">Import JSON<input type="file" id="btn-import" accept="application/json" hidden></label>
+      <button type="button" id="btn-reset" class="btn btn-danger">Wyczyść</button>
+      <button type="button" id="btn-print" class="btn btn-primary">Pobierz PDF</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <form id="editor" class="editor" autocomplete="off">
+      <section class="card">
+        <h2>Dane osobowe</h2>
+        <div class="grid">
+          <label>Imię i nazwisko<input name="fullName"></label>
+          <label>Stanowisko<input name="title"></label>
+          <label>E-mail<input name="email" type="email"></label>
+          <label>Telefon<input name="phone"></label>
+          <label>Miejscowość<input name="location"></label>
+          <label>Strona / LinkedIn<input name="website"></label>
+        </div>
+        <div class="photo-row">
+          <label>Zdjęcie<input type="file" id="photo-input" accept="image/*"></label>
+          <button type="button" id="photo-remove" class="btn btn-small">Usuń zdjęcie</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Podsumowanie zawodowe</h2>
+        <label><textarea name="summary" rows="4"></textarea></label>
+      </section>
+
+      <section class="card" data-list="experience">
+        <div class="card-head">
+          <h2>Doświadczenie</h2>
+          <button type="button" class="btn btn-small" data-add="experience">+ Dodaj</button>
+        </div>
+        <div class="list"></div>
+      </section>
+
+      <section class="card" data-list="education">
+        <div class="card-head">
+          <h2>Wykształcenie</h2>
+          <button type="button" class="btn btn-small" data-add="education">+ Dodaj</button>
+        </div>
+        <div class="list"></div>
+      </section>
+
+      <section class="card" data-list="skills">
+        <div class="card-head">
+          <h2>Umiejętności</h2>
+          <button type="button" class="btn btn-small" data-add="skills">+ Dodaj</button>
+        </div>
+        <div class="list"></div>
+      </section>
+
+      <section class="card" data-list="languages">
+        <div class="card-head">
+          <h2>Języki</h2>
+          <button type="button" class="btn btn-small" data-add="languages">+ Dodaj</button>
+        </div>
+        <div class="list"></div>
+      </section>
+
+      <section class="card">
+        <h2>Zainteresowania</h2>
+        <label>Oddziel przecinkami<input name="interests"></label>
+      </section>
+
+      <section class="card">
+        <h2>Klauzula RODO</h2>
+        <label class="check"><input type="checkbox" name="consentEnabled"> Dołącz klauzulę</label>
+        <label><textarea name="consent" rows="3"></textarea></label>
+      </section>
+    </form>
+
+    <div class="preview-wrap">
+      <article id="cv" class="cv"></article>
+    </div>
+  </main>
+
+  <template id="tpl-experience">
+    <div class="item">
+      <div class="grid">
+        <label>Stanowisko<input data-field="role"></label>
+        <label>Firma<input data-field="company"></label>
+        <label>Od<input data-field="start" placeholder="np. 03.2021"></label>
+        <label>Do<input data-field="end" placeholder="np. obecnie"></label>
+      </div>
+      <label>Opis (każda linia to osobny punkt)<textarea data-field="description" rows="3"></textarea></label>
+      <div class="item-actions">
+        <button type="button" class="btn btn-small" data-move="-1" title="W górę">↑</button>
+        <button type="button" class="btn btn-small" data-move="1" title="W dół">↓</button>
+        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-education">
+    <div class="item">
+      <div class="grid">
+        <label>Uczelnia / szkoła<input data-field="school"></label>
+        <label>Kierunek / stopień<input data-field="degree"></label>
+        <label>Od<input data-field="start"></label>
+        <label>Do<input data-field="end"></label>
+      </div>
+      <div class="item-actions">
+        <button type="button" class="btn btn-small" data-move="-1" title="W górę">↑</button>
+        <button type="button" class="btn btn-small" data-move="1" title="W dół">↓</button>
+        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-skills">
+    <div class="item item-row">
+      <label>Umiejętność<input data-field="name"></label>
+      <label>Poziom (1–5)<input data-field="level" type="range" min="1" max="5" value="3"></label>
+      <div class="item-actions">
+        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-languages">
+    <div class="item item-row">
+      <label>Język<input data-field="name"></label>
+      <label>Poziom
+        <select data-field="level">
+          <option>A1</option><option>A2</option><option>B1</option><option selected>B2</option>
+          <option>C1</option><option>C2</option><option>ojczysty</option>
+        </select>
+      </label>
+      <div class="item-actions">
+        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
