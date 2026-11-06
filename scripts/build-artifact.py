@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bundle index.html, styles.css and app.js into one file.
+"""Bundle index.html, styles.css, i18n.js and app.js into one file.
 
 Default: an HTML fragment for publishing as a claude.ai Artifact (the host
 adds <html>/<head>/<body>). With --standalone DEST: a complete page with the
@@ -12,10 +12,12 @@ root = pathlib.Path(__file__).resolve().parent.parent
 html = (root / "index.html").read_text(encoding="utf-8")
 css = (root / "styles.css").read_text(encoding="utf-8")
 js = (root / "app.js").read_text(encoding="utf-8")
+i18n = (root / "i18n.js").read_text(encoding="utf-8")
 
 if len(sys.argv) > 2 and sys.argv[1] == "--standalone":
     page = html.replace('<link rel="stylesheet" href="styles.css">', f"<style>\n{css}</style>")
     page = page.replace('<script src="app.js"></script>', f"<script>\n{js}</script>")
+    page = page.replace('<script src="i18n.js"></script>', f"<script>\n{i18n}</script>")
     dest = pathlib.Path(sys.argv[2])
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(page, encoding="utf-8")
@@ -31,6 +33,7 @@ body_data = re.findall(r'data-([\w-]+)="([^"]*)"', re.search(r"<body([^>]*)>", h
 keep = [line.strip() for line in head.splitlines()
         if re.match(r'\s*<(title|meta name="claude|link rel="stylesheet" href="https)', line)]
 body = body.replace('<script src="app.js"></script>', f"<script>\n{js}</script>")
+body = body.replace('<script src="i18n.js"></script>', f"<script>\n{i18n}</script>")
 
 out = (
     "\n".join(keep)

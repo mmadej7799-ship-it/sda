@@ -5,136 +5,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kreator CV</title>
   <meta name="claude:viewport-fit-sides" content="cover">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-view="edit" data-doc="cv">
+  <!-- Visible text carries data-i18n keys (see i18n.js); data-i18n-attr="attr:key;…" translates attributes. -->
   <header class="topbar">
     <div class="topbar-inner">
-      <h1 class="brand">Kreator&nbsp;CV</h1>
+      <h1 class="brand" data-i18n="appName">Kreator CV</h1>
       <fieldset class="segmented docswitch" id="doc-picker">
-        <legend>Dokument</legend>
+        <legend data-i18n="docPicker">Dokument</legend>
         <label><input type="radio" name="doc" value="cv" checked><span>CV</span></label>
-        <label><input type="radio" name="doc" value="letter"><span><span class="long">List motywacyjny</span><span class="short">List</span></span></label>
+        <label><input type="radio" name="doc" value="letter"><span><span class="long" data-i18n="docLetterLong">List motywacyjny</span><span class="short" data-i18n="docLetterShort">List</span></span></label>
       </fieldset>
       <div class="actions">
-        <button type="button" id="btn-more" class="btn btn-ghost only-narrow" aria-expanded="false" aria-controls="menu">Plik ▾</button>
+        <select id="ui-lang" class="lang-select" data-i18n-attr="aria-label:uiLang;title:uiLang" aria-label="Język interfejsu">
+          <option value="pl">PL</option>
+          <option value="uk">UA</option>
+          <option value="en">EN</option>
+        </select>
+        <button type="button" id="btn-more" class="btn btn-ghost only-narrow" aria-expanded="false" aria-controls="menu" data-i18n="file">Plik ▾</button>
         <div id="menu" class="menu">
-          <button type="button" id="btn-sample" class="btn btn-ghost">Wczytaj przykład</button>
-          <label class="btn btn-ghost" for="btn-import">Import JSON</label>
+          <button type="button" id="btn-sample" class="btn btn-ghost" data-i18n="sample">Wczytaj przykład</button>
+          <label class="btn btn-ghost" for="btn-import" data-i18n="import">Import JSON</label>
           <input type="file" id="btn-import" accept="application/json,.json" hidden>
-          <button type="button" id="btn-export" class="btn btn-ghost">Eksport JSON</button>
-          <button type="button" id="btn-reset" class="btn btn-ghost btn-danger">Wyczyść</button>
+          <button type="button" id="btn-export" class="btn btn-ghost" data-i18n="export">Eksport JSON</button>
+          <button type="button" id="btn-reset" class="btn btn-ghost btn-danger" data-i18n="reset">Wyczyść</button>
         </div>
-        <button type="button" id="btn-pdf" class="btn btn-primary">Pobierz PDF</button>
+        <button type="button" id="btn-pdf" class="btn btn-primary"><span class="long" data-i18n="pdfVerb">Pobierz</span> PDF</button>
       </div>
     </div>
   </header>
 
   <div id="sample-banner" class="banner" hidden>
-    <p>CV i list wypełniono przykładowymi danymi. Zastąp je swoimi albo zacznij od zera.</p>
-    <button type="button" id="btn-start-empty" class="btn btn-small">Zacznij od zera</button>
+    <p data-i18n="banner">CV i list wypełniono przykładowymi danymi. Zastąp je swoimi albo zacznij od zera.</p>
+    <button type="button" id="btn-start-empty" class="btn btn-small" data-i18n="startEmpty">Zacznij od zera</button>
   </div>
 
   <main class="layout">
     <form id="editor" class="pane pane-edit" data-doc="cv" autocomplete="off" novalidate>
+      <div class="doc-lang-row">
+        <label><span data-i18n="docLang">Język dokumentu</span>
+          <select class="doc-lang" id="doc-lang-cv">
+            <option value="pl">Polski</option>
+            <option value="uk">Українська</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <p class="hint" data-i18n="docLangHint">Może być inny niż język interfejsu, np. CV po polsku dla polskiego pracodawcy.</p>
+      </div>
+
       <details class="card" open>
-        <summary><span>Dane osobowe</span></summary>
+        <summary><span data-i18n="secPersonal">Dane osobowe</span></summary>
         <div class="card-body">
           <div class="photo-row">
             <div class="photo-thumb" id="photo-thumb" aria-hidden="true"></div>
             <div class="photo-actions">
-              <label class="btn btn-small" for="photo-input">Dodaj zdjęcie</label>
+              <label class="btn btn-small" for="photo-input" data-i18n="addPhoto">Dodaj zdjęcie</label>
               <input type="file" id="photo-input" accept="image/*" hidden>
-              <button type="button" id="photo-remove" class="btn btn-small btn-ghost" hidden>Usuń zdjęcie</button>
+              <button type="button" id="photo-remove" class="btn btn-small btn-ghost" data-i18n="removePhoto" hidden>Usuń zdjęcie</button>
             </div>
           </div>
           <div class="grid">
-            <label>Imię i nazwisko<input id="f-fullName" name="fullName" autocomplete="name"></label>
-            <label>Stanowisko<input id="f-title" name="title" placeholder="np. Księgowa, Frontend Developer"></label>
-            <label>E-mail<input id="f-email" name="email" type="email" inputmode="email" autocomplete="email"></label>
-            <label>Telefon<input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel"></label>
-            <label>Miejscowość<input id="f-location" name="location" autocomplete="address-level2"></label>
-            <label>Strona / LinkedIn<input id="f-website" name="website" inputmode="url"></label>
+            <label><span data-i18n="fFullName">Imię i nazwisko</span><input id="f-fullName" name="fullName" autocomplete="name"></label>
+            <label><span data-i18n="fTitle">Stanowisko</span><input id="f-title" name="title" data-i18n-attr="placeholder:phTitle"></label>
+            <label><span data-i18n="fEmail">E-mail</span><input id="f-email" name="email" type="email" inputmode="email" autocomplete="email"></label>
+            <label><span data-i18n="fPhone">Telefon</span><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel"></label>
+            <label><span data-i18n="fLocation">Miejscowość</span><input id="f-location" name="location" autocomplete="address-level2"></label>
+            <label><span data-i18n="fWebsite">Strona / LinkedIn</span><input id="f-website" name="website" inputmode="url"></label>
           </div>
         </div>
       </details>
 
       <details class="card">
-        <summary><span>Podsumowanie zawodowe</span></summary>
+        <summary><span data-i18n="secSummary">Podsumowanie zawodowe</span></summary>
         <div class="card-body">
-          <label>2–4 zdania o tym, kim jesteś i w czym jesteś dobry
+          <label><span data-i18n="summaryHint">2–4 zdania o tym, kim jesteś i w czym jesteś dobry</span>
             <textarea id="f-summary" name="summary" rows="4"></textarea>
           </label>
         </div>
       </details>
 
       <details class="card" data-list="experience">
-        <summary><span>Doświadczenie</span><span class="count"></span></summary>
+        <summary><span data-i18n="secExperience">Doświadczenie</span><span class="count"></span></summary>
         <div class="card-body">
           <div class="list"></div>
-          <button type="button" class="btn btn-add" data-add="experience">+ Dodaj stanowisko</button>
+          <button type="button" class="btn btn-add" data-add="experience" data-i18n="addExperience">+ Dodaj stanowisko</button>
         </div>
       </details>
 
       <details class="card" data-list="education">
-        <summary><span>Wykształcenie</span><span class="count"></span></summary>
+        <summary><span data-i18n="secEducation">Wykształcenie</span><span class="count"></span></summary>
         <div class="card-body">
           <div class="list"></div>
-          <button type="button" class="btn btn-add" data-add="education">+ Dodaj szkołę</button>
+          <button type="button" class="btn btn-add" data-add="education" data-i18n="addEducation">+ Dodaj szkołę</button>
         </div>
       </details>
 
       <details class="card" data-list="skills">
-        <summary><span>Umiejętności</span><span class="count"></span></summary>
+        <summary><span data-i18n="secSkills">Umiejętności</span><span class="count"></span></summary>
         <div class="card-body">
-          <label class="check"><input type="checkbox" id="f-skillBars" name="skillBars"> Pokazuj poziom (słupki)</label>
+          <label class="check"><input type="checkbox" id="f-skillBars" name="skillBars"> <span data-i18n="skillBars">Pokazuj poziom (słupki)</span></label>
           <div class="list"></div>
-          <button type="button" class="btn btn-add" data-add="skills">+ Dodaj umiejętność</button>
+          <button type="button" class="btn btn-add" data-add="skills" data-i18n="addSkill">+ Dodaj umiejętność</button>
         </div>
       </details>
 
       <details class="card" data-list="languages">
-        <summary><span>Języki</span><span class="count"></span></summary>
+        <summary><span data-i18n="secLanguages">Języki</span><span class="count"></span></summary>
         <div class="card-body">
           <div class="list"></div>
-          <button type="button" class="btn btn-add" data-add="languages">+ Dodaj język</button>
+          <button type="button" class="btn btn-add" data-add="languages" data-i18n="addLanguage">+ Dodaj język</button>
         </div>
       </details>
 
       <details class="card">
-        <summary><span>Zainteresowania</span></summary>
+        <summary><span data-i18n="secInterests">Zainteresowania</span></summary>
         <div class="card-body">
-          <label>Oddziel przecinkami<input id="f-interests" name="interests" placeholder="np. bieganie, fotografia"></label>
+          <label><span data-i18n="interestsHint">Oddziel przecinkami</span><input id="f-interests" name="interests" data-i18n-attr="placeholder:phInterests"></label>
         </div>
       </details>
 
       <details class="card">
-        <summary><span>Klauzula RODO</span></summary>
+        <summary><span data-i18n="secConsent">Klauzula RODO</span></summary>
         <div class="card-body">
-          <label class="check"><input type="checkbox" id="f-consentEnabled" name="consentEnabled"> Dołącz klauzulę na dole CV</label>
-          <label>Treść klauzuli<textarea id="f-consent" name="consent" rows="4"></textarea></label>
+          <label class="check"><input type="checkbox" id="f-consentEnabled" name="consentEnabled"> <span data-i18n="consentInclude">Dołącz klauzulę na dole CV</span></label>
+          <label><span data-i18n="consentText">Treść klauzuli</span><textarea id="f-consent" name="consent" rows="4"></textarea></label>
         </div>
       </details>
     </form>
 
-    <section class="pane pane-preview" data-doc="cv" aria-label="Podgląd CV">
+    <section class="pane pane-preview" data-doc="cv" data-i18n-attr="aria-label:previewCv" aria-label="Podgląd CV">
       <div class="look">
         <fieldset class="segmented" id="template-picker">
-          <legend>Szablon</legend>
-          <label><input type="radio" name="template" value="modern" checked><span>Nowoczesny</span></label>
-          <label><input type="radio" name="template" value="classic"><span>Klasyczny</span></label>
-          <label><input type="radio" name="template" value="minimal"><span>Minimalny</span></label>
+          <legend data-i18n="template">Szablon</legend>
+          <label><input type="radio" name="template" value="modern" checked><span data-i18n="tplModern">Nowoczesny</span></label>
+          <label><input type="radio" name="template" value="classic"><span data-i18n="tplClassic">Klasyczny</span></label>
+          <label><input type="radio" name="template" value="minimal"><span data-i18n="tplMinimal">Minimalny</span></label>
         </fieldset>
         <fieldset class="swatches" id="accent-picker">
-          <legend>Kolor</legend>
-          <label style="--sw:#2563eb"><input type="radio" name="accent" value="#2563eb" aria-label="Niebieski"></label>
-          <label style="--sw:#0f766e"><input type="radio" name="accent" value="#0f766e" aria-label="Morski"></label>
-          <label style="--sw:#7c3aed"><input type="radio" name="accent" value="#7c3aed" aria-label="Fioletowy"></label>
-          <label style="--sw:#b91c1c"><input type="radio" name="accent" value="#b91c1c" aria-label="Bordowy"></label>
-          <label style="--sw:#c2410c"><input type="radio" name="accent" value="#c2410c" aria-label="Pomarańczowy"></label>
-          <label style="--sw:#334155"><input type="radio" name="accent" value="#334155" aria-label="Grafitowy"></label>
-          <label class="custom" title="Własny kolor"><input type="color" id="accent-custom" value="#2563eb" aria-label="Własny kolor"></label>
+          <legend data-i18n="color">Kolor</legend>
+          <label style="--sw:#2563eb"><input type="radio" name="accent" value="#2563eb" data-i18n-attr="aria-label:cBlue"></label>
+          <label style="--sw:#0f766e"><input type="radio" name="accent" value="#0f766e" data-i18n-attr="aria-label:cTeal"></label>
+          <label style="--sw:#7c3aed"><input type="radio" name="accent" value="#7c3aed" data-i18n-attr="aria-label:cViolet"></label>
+          <label style="--sw:#b91c1c"><input type="radio" name="accent" value="#b91c1c" data-i18n-attr="aria-label:cMaroon"></label>
+          <label style="--sw:#c2410c"><input type="radio" name="accent" value="#c2410c" data-i18n-attr="aria-label:cOrange"></label>
+          <label style="--sw:#334155"><input type="radio" name="accent" value="#334155" data-i18n-attr="aria-label:cGraphite"></label>
+          <label class="custom" data-i18n-attr="title:cCustom"><input type="color" id="accent-custom" value="#2563eb" data-i18n-attr="aria-label:cCustom"></label>
         </fieldset>
       </div>
       <div class="paper-wrap">
@@ -143,83 +160,92 @@
     </section>
 
     <form id="letter-editor" class="pane pane-edit" data-doc="letter" autocomplete="off" novalidate>
-      <p class="hint">Imię, dane kontaktowe, kolor i szablon list bierze z Twojego CV.</p>
+      <div class="doc-lang-row">
+        <label><span data-i18n="docLang">Język dokumentu</span>
+          <select class="doc-lang" id="doc-lang-letter">
+            <option value="pl">Polski</option>
+            <option value="uk">Українська</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <p class="hint" data-i18n="letterHint">Imię, dane kontaktowe, kolor i szablon list bierze z Twojego CV.</p>
+      </div>
 
       <details class="card" open>
-        <summary><span>Oferta pracy</span></summary>
+        <summary><span data-i18n="secJob">Oferta pracy</span></summary>
         <div class="card-body">
           <div class="grid">
-            <label>Stanowisko<input id="l-position" name="position" placeholder="np. Senior Frontend Developer"></label>
-            <label>Firma<input id="l-company" name="company" placeholder="np. Nowa Firma S.A."></label>
+            <label><span data-i18n="lPosition">Stanowisko</span><input id="l-position" name="position" data-i18n-attr="placeholder:phPosition"></label>
+            <label><span data-i18n="lCompany">Firma</span><input id="l-company" name="company" data-i18n-attr="placeholder:phCompany"></label>
           </div>
-          <label>Treść ogłoszenia (opcjonalnie, pomaga dopasować list)
-            <textarea id="l-jobAd" name="jobAd" rows="5" placeholder="Wklej tutaj ogłoszenie o pracę"></textarea>
+          <label><span data-i18n="lJobAd">Treść ogłoszenia (opcjonalnie, pomaga dopasować list)</span>
+            <textarea id="l-jobAd" name="jobAd" rows="5" data-i18n-attr="placeholder:phJobAd"></textarea>
           </label>
         </div>
       </details>
 
       <details class="card">
-        <summary><span>Adresat i data</span></summary>
+        <summary><span data-i18n="secRecipient">Adresat i data</span></summary>
         <div class="card-body">
-          <label>Osoba lub dział<input id="l-recipient" name="recipient" placeholder="np. Dział HR"></label>
-          <label>Adres firmy<textarea id="l-address" name="address" rows="2" placeholder="ul. Przykładowa 1&#10;00-001 Warszawa"></textarea></label>
-          <label>Miejscowość i data (puste = dzisiejsza)<input id="l-date" name="date"></label>
+          <label><span data-i18n="lRecipient">Osoba lub dział</span><input id="l-recipient" name="recipient" data-i18n-attr="placeholder:phRecipient"></label>
+          <label><span data-i18n="lAddress">Adres firmy</span><textarea id="l-address" name="address" rows="2" data-i18n-attr="placeholder:phAddress"></textarea></label>
+          <label><span data-i18n="lDate">Miejscowość i data (puste = dzisiejsza)</span><input id="l-date" name="date"></label>
         </div>
       </details>
 
       <details class="card" open>
-        <summary><span>Treść listu</span></summary>
+        <summary><span data-i18n="secBody">Treść listu</span></summary>
         <div class="card-body">
           <div class="write-tools">
             <div class="grid">
-              <label>Ton
+              <label><span data-i18n="lTone">Ton</span>
                 <select id="l-tone" name="tone">
-                  <option value="formal">Formalny</option>
-                  <option value="warm">Ciepły, osobisty</option>
-                  <option value="concise">Zwięzły</option>
+                  <option value="formal" data-i18n="toneFormal">Formalny</option>
+                  <option value="warm" data-i18n="toneWarm">Ciepły, osobisty</option>
+                  <option value="concise" data-i18n="toneConcise">Zwięzły</option>
                 </select>
               </label>
-              <label>Forma gramatyczna
+              <label class="gender-field"><span data-i18n="lGender">Forma gramatyczna</span>
                 <select id="l-gender" name="gender">
-                  <option value="neutral">Neutralna</option>
-                  <option value="f">Żeńska („pracowałam”)</option>
-                  <option value="m">Męska („pracowałem”)</option>
+                  <option value="neutral" data-i18n="gNeutral">Neutralna</option>
+                  <option value="f" data-i18n="gF">Żeńska („pracowałam”)</option>
+                  <option value="m" data-i18n="gM">Męska („pracowałem”)</option>
                 </select>
               </label>
             </div>
-            <label class="ai-only" hidden>Na co położyć nacisk? (opcjonalnie)<input id="l-extra" name="extra" placeholder="np. praca z klientem, zarządzanie zespołem"></label>
+            <label class="ai-only" hidden><span data-i18n="lExtra">Na co położyć nacisk? (opcjonalnie)</span><input id="l-extra" name="extra" data-i18n-attr="placeholder:phExtra"></label>
             <div class="write-actions">
-              <button type="button" id="btn-ai" class="btn btn-primary ai-only" hidden>Napisz z AI</button>
-              <button type="button" id="btn-ai-stop" class="btn" hidden>Zatrzymaj</button>
-              <button type="button" id="btn-draft" class="btn">Wstaw szkic z CV</button>
+              <button type="button" id="btn-ai" class="btn btn-primary ai-only" data-i18n="aiWrite" hidden>Napisz z AI</button>
+              <button type="button" id="btn-ai-stop" class="btn" data-i18n="aiStop" hidden>Zatrzymaj</button>
+              <button type="button" id="btn-draft" class="btn" data-i18n="draft">Wstaw szkic z CV</button>
             </div>
             <p class="ai-status" id="ai-status" role="status" hidden></p>
           </div>
-          <label>Zwrot grzecznościowy<input id="l-greeting" name="greeting"></label>
-          <label>Treść (akapity oddziel pustą linią)<textarea id="l-body" name="body" rows="14"></textarea></label>
-          <label>Zakończenie<input id="l-closing" name="closing"></label>
-          <label class="check"><input type="checkbox" id="l-consentEnabled" name="consentEnabled"> Dołącz klauzulę RODO (treść z CV)</label>
+          <label><span data-i18n="lGreeting">Zwrot grzecznościowy</span><input id="l-greeting" name="greeting"></label>
+          <label><span data-i18n="lBody">Treść (akapity oddziel pustą linią)</span><textarea id="l-body" name="body" rows="14"></textarea></label>
+          <label><span data-i18n="lClosing">Zakończenie</span><input id="l-closing" name="closing"></label>
+          <label class="check"><input type="checkbox" id="l-consentEnabled" name="consentEnabled"> <span data-i18n="lConsent">Dołącz klauzulę RODO (treść z CV)</span></label>
         </div>
       </details>
     </form>
 
-    <section class="pane pane-preview" data-doc="letter" aria-label="Podgląd listu motywacyjnego">
+    <section class="pane pane-preview" data-doc="letter" data-i18n-attr="aria-label:previewLetter" aria-label="Podgląd listu motywacyjnego">
       <div class="paper-wrap">
         <article id="letter" class="sheet letter" lang="pl"></article>
       </div>
     </section>
   </main>
 
-  <nav class="tabbar" aria-label="Widok">
-    <button type="button" data-view-btn="edit" aria-pressed="true">Edycja</button>
-    <button type="button" data-view-btn="preview" aria-pressed="false">Podgląd</button>
+  <nav class="tabbar" data-i18n-attr="aria-label:viewNav" aria-label="Widok">
+    <button type="button" data-view-btn="edit" aria-pressed="true" data-i18n="tabEdit">Edycja</button>
+    <button type="button" data-view-btn="preview" aria-pressed="false" data-i18n="tabPreview">Podgląd</button>
   </nav>
 
   <div id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-text" hidden>
     <div class="dialog-box">
       <p id="dialog-text"></p>
       <div class="dialog-actions">
-        <button type="button" class="btn" data-answer="no">Anuluj</button>
+        <button type="button" class="btn" data-answer="no" data-i18n="cancel">Anuluj</button>
         <button type="button" class="btn btn-primary" data-answer="yes" id="dialog-ok">OK</button>
       </div>
     </div>
@@ -230,38 +256,38 @@
   <template id="tpl-experience">
     <div class="item">
       <div class="item-head">
-        <strong class="item-title" data-placeholder="Nowe stanowisko"></strong>
+        <strong class="item-title" data-i18n-attr="data-placeholder:newJob"></strong>
         <div class="item-actions">
-          <button type="button" class="icon-btn" data-move="-1" aria-label="Przesuń w górę">↑</button>
-          <button type="button" class="icon-btn" data-move="1" aria-label="Przesuń w dół">↓</button>
-          <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+          <button type="button" class="icon-btn" data-move="-1" data-i18n-attr="aria-label:moveUp">↑</button>
+          <button type="button" class="icon-btn" data-move="1" data-i18n-attr="aria-label:moveDown">↓</button>
+          <button type="button" class="icon-btn danger" data-remove data-i18n-attr="aria-label:remove">✕</button>
         </div>
       </div>
       <div class="grid">
-        <label>Stanowisko<input data-field="role" data-title="1"></label>
-        <label>Firma<input data-field="company" data-title="2"></label>
-        <label>Od<input data-field="start" placeholder="np. 03.2021"></label>
-        <label>Do<input data-field="end" placeholder="np. obecnie"></label>
+        <label><span data-i18n="iRole">Stanowisko</span><input data-field="role" data-title="1"></label>
+        <label><span data-i18n="iCompany">Firma</span><input data-field="company" data-title="2"></label>
+        <label><span data-i18n="iFrom">Od</span><input data-field="start" data-i18n-attr="placeholder:phFrom"></label>
+        <label><span data-i18n="iTo">Do</span><input data-field="end" data-i18n-attr="placeholder:phTo"></label>
       </div>
-      <label>Obowiązki i osiągnięcia (każda linia to osobny punkt)<textarea data-field="description" rows="4"></textarea></label>
+      <label><span data-i18n="iDesc">Obowiązki i osiągnięcia (każda linia to osobny punkt)</span><textarea data-field="description" rows="4"></textarea></label>
     </div>
   </template>
 
   <template id="tpl-education">
     <div class="item">
       <div class="item-head">
-        <strong class="item-title" data-placeholder="Nowa szkoła"></strong>
+        <strong class="item-title" data-i18n-attr="data-placeholder:newSchool"></strong>
         <div class="item-actions">
-          <button type="button" class="icon-btn" data-move="-1" aria-label="Przesuń w górę">↑</button>
-          <button type="button" class="icon-btn" data-move="1" aria-label="Przesuń w dół">↓</button>
-          <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+          <button type="button" class="icon-btn" data-move="-1" data-i18n-attr="aria-label:moveUp">↑</button>
+          <button type="button" class="icon-btn" data-move="1" data-i18n-attr="aria-label:moveDown">↓</button>
+          <button type="button" class="icon-btn danger" data-remove data-i18n-attr="aria-label:remove">✕</button>
         </div>
       </div>
       <div class="grid">
-        <label>Uczelnia / szkoła<input data-field="school" data-title="1"></label>
-        <label>Kierunek / stopień<input data-field="degree" data-title="2"></label>
-        <label>Od<input data-field="start" inputmode="numeric"></label>
-        <label>Do<input data-field="end"></label>
+        <label><span data-i18n="iSchool">Uczelnia / szkoła</span><input data-field="school" data-title="1"></label>
+        <label><span data-i18n="iDegree">Kierunek / stopień</span><input data-field="degree" data-title="2"></label>
+        <label><span data-i18n="iFrom">Od</span><input data-field="start" inputmode="numeric"></label>
+        <label><span data-i18n="iTo">Do</span><input data-field="end"></label>
       </div>
     </div>
   </template>
@@ -269,28 +295,29 @@
   <template id="tpl-skills">
     <div class="item item-compact">
       <div class="grid grid-compact">
-        <label>Umiejętność<input data-field="name"></label>
-        <label class="level-field">Poziom: <output class="level-out">3</output>/5<input data-field="level" type="range" min="1" max="5" value="3"></label>
+        <label><span data-i18n="iSkill">Umiejętność</span><input data-field="name"></label>
+        <label class="level-field"><span><span data-i18n="iLevel">Poziom:</span> <output class="level-out">3</output>/5</span><input data-field="level" type="range" min="1" max="5" value="3"></label>
       </div>
-      <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+      <button type="button" class="icon-btn danger" data-remove data-i18n-attr="aria-label:remove">✕</button>
     </div>
   </template>
 
   <template id="tpl-languages">
     <div class="item item-compact">
       <div class="grid grid-compact">
-        <label>Język<input data-field="name"></label>
-        <label>Poziom
+        <label><span data-i18n="iLanguage">Język</span><input data-field="name"></label>
+        <label><span data-i18n="iLangLevel">Poziom</span>
           <select data-field="level">
             <option>A1</option><option>A2</option><option>B1</option><option selected>B2</option>
-            <option>C1</option><option>C2</option><option>ojczysty</option>
+            <option>C1</option><option>C2</option><option value="ojczysty" data-i18n="native">ojczysty</option>
           </select>
         </label>
       </div>
-      <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+      <button type="button" class="icon-btn danger" data-remove data-i18n-attr="aria-label:remove">✕</button>
     </div>
   </template>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

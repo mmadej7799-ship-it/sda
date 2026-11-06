@@ -14,7 +14,7 @@
   --danger: #b4302a;
   --shadow: 0 1px 2px rgba(23, 33, 43, .06), 0 6px 24px rgba(23, 33, 43, .08);
 
-  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-ui: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-cv: "Source Sans 3", "Segoe UI", Roboto, Arial, sans-serif;
   --font-cv-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 
@@ -94,6 +94,15 @@ body::before {
 .brand { margin: 0; font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em; }
 .docswitch .short { display: none; }
 .actions { position: relative; display: flex; align-items: center; gap: 8px; }
+.lang-select {
+  width: auto !important;
+  min-height: 40px !important;
+  padding: 6px 26px 6px 10px !important;
+  font-size: .85rem !important;
+  font-weight: 700;
+  background-color: var(--surface) !important;
+  cursor: pointer;
+}
 
 /* Only the active document's form and preview are shown. */
 body[data-doc="cv"] [data-doc="letter"],
@@ -321,6 +330,9 @@ input[type=range] { width: 100%; height: var(--tap); accent-color: var(--brand);
 
 /* ---------- Letter editor extras ---------- */
 .hint { margin: 0; padding: 0 4px; font-size: .85rem; color: var(--muted); }
+.doc-lang-row { display: flex; flex-direction: column; gap: 6px; }
+.doc-lang-row > label { flex-direction: row; align-items: center; gap: 10px; font-size: .9rem; font-weight: 600; color: var(--fg); }
+.doc-lang-row select { width: auto !important; flex: 1; max-width: 260px; background: var(--surface) !important; }
 .write-tools {
   display: flex;
   flex-direction: column;
@@ -534,6 +546,8 @@ textarea[readonly] { opacity: .75; }
   .docswitch { margin-left: 0; }
   .topbar-inner { gap: 8px; }
   #btn-pdf { padding-inline: 12px; }
+  #btn-pdf .long { display: none; }
+  .lang-select { padding-inline: 6px 22px !important; }
 }
 @media (max-width: 900px) {
   .docswitch .long { display: none; }

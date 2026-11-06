@@ -12,10 +12,7 @@
   // GoatCounter site code (the "NAME" in NAME.goatcounter.com). Empty = no counting.
   // Only page views and PDF clicks are sent, never anything typed into the form.
   const GOATCOUNTER = '';
-  const DEFAULT_CONSENT =
-    'Wyrażam zgodę na przetwarzanie moich danych osobowych dla potrzeb niezbędnych ' +
-    'do realizacji procesu rekrutacji zgodnie z Rozporządzeniem Parlamentu Europejskiego ' +
-    'i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO).';
+  const { LANGS, UI, DOC, DRAFT, SAMPLES, CURRENT_JOB, detectLang } = window.CVI18N;
 
   const LETTER_FIELDS = [
     'position', 'company', 'jobAd', 'recipient', 'address', 'date',
@@ -23,84 +20,38 @@
   ];
   const LETTER_CHOICES = { tone: ['formal', 'warm', 'concise'], gender: ['neutral', 'f', 'm'] };
 
-  const emptyLetter = () => ({
+  // `lang` is the document language: it decides the default greeting,
+  // closing and consent clause.
+  const emptyLetter = (lang = 'pl') => ({
     position: '', company: '', jobAd: '', recipient: '', address: '', date: '',
     tone: 'formal', gender: 'neutral', extra: '',
-    greeting: 'Szanowni Państwo,', body: '', closing: 'Z poważaniem',
+    greeting: DOC[lang].greeting, body: '', closing: DOC[lang].closing,
     consentEnabled: true,
   });
 
-  const emptyState = () => ({
+  const emptyState = (lang = 'pl') => ({
     fullName: '', title: '', email: '', phone: '', location: '', website: '',
     photo: '', summary: '', interests: '',
-    consentEnabled: true, consent: DEFAULT_CONSENT,
+    consentEnabled: true, consent: DOC[lang].consent,
     skillBars: true,
     experience: [], education: [], skills: [], languages: [],
     template: 'modern', accent: '#2563eb',
-    letter: emptyLetter(),
+    letter: emptyLetter(lang),
     doc: 'cv',
+    uiLang: lang,
+    docLang: lang,
     isSample: false,
   });
 
-  const sampleLetter = () => ({
-    ...emptyLetter(),
-    position: 'Senior Frontend Developer',
-    company: 'Nowa Firma S.A.',
-    recipient: 'Dział HR',
-    address: 'ul. Prosta 20\n00-850 Warszawa',
-    gender: 'f',
-    body:
-      'Z dużym zainteresowaniem przeczytałam ogłoszenie o pracy na stanowisku Senior Frontend Developer ' +
-      'w Nowej Firmie S.A. i chciałabym zgłosić swoją kandydaturę. Od pięciu lat tworzę aplikacje webowe ' +
-      'w React i TypeScript, a Państwa produkt od dawna śledzę jako użytkowniczka.\n\n' +
-      'Obecnie w TechSoft prowadzę zespół czterech programistów. Przeprowadziłam migrację dużej aplikacji ' +
-      'do React 18 i TypeScript oraz skróciłam czas ładowania strony o 40%. Dbam o dostępność i wydajność ' +
-      'interfejsów, a wcześniej w WebStudio współtworzyłam bibliotekę komponentów UI używaną w kilkunastu projektach.\n\n' +
-      'Chętnie opowiem więcej o swoim doświadczeniu podczas rozmowy. Dziękuję za poświęcony czas ' +
-      'i rozważenie mojej kandydatury.',
-  });
-
-  const sampleState = () => ({
-    ...emptyState(),
-    isSample: true,
-    fullName: 'Anna Kowalska',
-    title: 'Frontend Developer',
-    email: 'anna.kowalska@example.com',
-    phone: '+48 600 123 456',
-    location: 'Warszawa',
-    website: 'linkedin.com/in/annakowalska',
-    summary:
-      'Programistka frontend z 5-letnim doświadczeniem w budowie aplikacji webowych. ' +
-      'Specjalizuję się w React i TypeScript, dbam o dostępność i wydajność interfejsów.',
-    experience: [
-      {
-        role: 'Senior Frontend Developer', company: 'TechSoft sp. z o.o.',
-        start: '03.2022', end: 'obecnie',
-        description: 'Prowadzenie zespołu 4 programistów\nMigracja aplikacji do React 18 i TypeScript\nSkrócenie czasu ładowania strony o 40%',
-      },
-      {
-        role: 'Frontend Developer', company: 'WebStudio',
-        start: '06.2019', end: '02.2022',
-        description: 'Tworzenie sklepów internetowych dla klientów z branży e-commerce\nWdrożenie biblioteki komponentów UI',
-      },
-    ],
-    education: [
-      { school: 'Politechnika Warszawska', degree: 'Informatyka, inżynier', start: '2015', end: '2019' },
-    ],
-    skills: [
-      { name: 'JavaScript / TypeScript', level: '5' },
-      { name: 'React', level: '5' },
-      { name: 'HTML i CSS', level: '4' },
-      { name: 'Node.js', level: '3' },
-    ],
-    languages: [
-      { name: 'Polski', level: 'ojczysty' },
-      { name: 'Angielski', level: 'C1' },
-      { name: 'Niemiecki', level: 'A2' },
-    ],
-    interests: 'fotografia, wspinaczka, gry planszowe',
-    letter: sampleLetter(),
-  });
+  const sampleState = (lang = 'pl') => {
+    const sample = JSON.parse(JSON.stringify(SAMPLES[lang]));
+    return {
+      ...emptyState(lang),
+      ...sample.cv,
+      letter: { ...emptyLetter(lang), ...sample.letter },
+      isSample: true,
+    };
+  };
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -118,9 +69,11 @@
   // Coerces anything (saved state, an imported file) into a valid state object,
   // so a corrupt or hand-edited file can never break rendering.
   function normalize(data) {
-    const base = emptyState();
-    if (!data || typeof data !== 'object') return base;
-    const out = { ...base };
+    if (!data || typeof data !== 'object') return emptyState();
+    // Files saved before languages existed are Polish.
+    const docLang = LANGS.includes(data.docLang) ? data.docLang : 'pl';
+    const out = emptyState(docLang);
+    out.uiLang = LANGS.includes(data.uiLang) ? data.uiLang : docLang;
     SIMPLE_FIELDS.forEach((f) => { if (typeof data[f] === 'string') out[f] = data[f]; });
     LISTS.forEach((l) => {
       if (!Array.isArray(data[l])) return;
@@ -134,7 +87,7 @@
     out.consentEnabled = data.consentEnabled !== false;
     out.skillBars = data.skillBars !== false;
     const letter = data.letter && typeof data.letter === 'object' ? data.letter : {};
-    out.letter = emptyLetter();
+    out.letter = emptyLetter(docLang);
     LETTER_FIELDS.forEach((f) => { if (typeof letter[f] === 'string') out.letter[f] = letter[f]; });
     Object.entries(LETTER_CHOICES).forEach(([f, allowed]) => {
       if (!allowed.includes(out.letter[f])) out.letter[f] = allowed[0];
@@ -160,9 +113,68 @@
     } catch (_) {
       if (!storageWarned) {
         storageWarned = true;
-        toast('Nie udało się zapisać w przeglądarce. Użyj „Eksport JSON”, żeby nie stracić danych.');
+        toast(t('toastSaveFail'));
       }
     }
+  }
+
+  // ---------- Languages ----------
+
+  // t(): interface text in the UI language; d(): text printed on the documents.
+  const t = (key) => UI[state.uiLang][key] ?? UI.pl[key] ?? key;
+  const d = (key) => DOC[state.docLang][key];
+
+  function applyI18n(root = document) {
+    $$('[data-i18n]', root).forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    $$('[data-i18n-attr]', root).forEach((el) => {
+      el.dataset.i18nAttr.split(';').forEach((pair) => {
+        const [attr, key] = pair.split(':');
+        el.setAttribute(attr, t(key));
+      });
+    });
+  }
+
+  function applyLanguage() {
+    applyI18n();
+    $$('template').forEach((tpl) => applyI18n(tpl.content));
+    document.documentElement.lang = state.uiLang;
+    $('#ui-lang').value = state.uiLang;
+    $$('.doc-lang').forEach((s) => { s.value = state.docLang; });
+    $$('.sheet').forEach((s) => { s.lang = state.docLang; });
+    // English has no grammatical gender in the first person.
+    $('.gender-field').hidden = state.docLang === 'en';
+  }
+
+  // Switching the document language swaps texts the user never changed
+  // (default greeting, closing, consent) and reloads the example if one is shown.
+  function setDocLang(lang) {
+    const prev = state.docLang;
+    if (lang === prev) return;
+    if (state.isSample) {
+      const keep = { template: state.template, accent: state.accent, doc: state.doc, uiLang: state.uiLang, skillBars: state.skillBars };
+      state = { ...sampleState(lang), ...keep };
+    } else {
+      state.docLang = lang;
+      const L = state.letter;
+      if (L.greeting === DOC[prev].greeting) L.greeting = DOC[lang].greeting;
+      if (L.closing === DOC[prev].closing) L.closing = DOC[lang].closing;
+      if (state.consent === DOC[prev].consent) state.consent = DOC[lang].consent;
+    }
+    state.docLang = lang;
+    fillForm();
+    save();
+    render();
+  }
+
+  // While the document language matches the interface, it follows it.
+  function setUiLang(lang) {
+    const followDoc = state.docLang === state.uiLang;
+    state.uiLang = lang;
+    applyLanguage();
+    if (followDoc) setDocLang(lang);
+    applyLanguage();
+    save();
+    render();
   }
 
   // ---------- Small UI helpers ----------
@@ -177,7 +189,7 @@
   }
 
   // In-page replacement for confirm(), which is blocked inside sandboxed frames.
-  function ask(message, okLabel = 'OK') {
+  function ask(message, okLabel = t('ok')) {
     const dialog = $('#dialog');
     $('#dialog-text').textContent = message;
     $('#dialog-ok').textContent = okLabel;
@@ -311,10 +323,10 @@
   function contactList() {
     const row = (label, value) => `<li><span class="k">${label}</span>${value}</li>`;
     const items = [
-      state.email.trim() && row('E-mail', esc(state.email)),
-      state.phone.trim() && row('Telefon', esc(state.phone)),
-      state.location.trim() && row('Miejscowość', esc(state.location)),
-      state.website.trim() && row('WWW', esc(state.website)),
+      state.email.trim() && row(d('kEmail'), esc(state.email)),
+      state.phone.trim() && row(d('kPhone'), esc(state.phone)),
+      state.location.trim() && row(d('kLocation'), esc(state.location)),
+      state.website.trim() && row(d('kWww'), esc(state.website)),
     ].filter(Boolean);
     return items.length ? `<ul class="contact">${items.join('')}</ul>` : '';
   }
@@ -367,7 +379,7 @@
 
   function languagesHtml() {
     return filled(state.languages, ['name']).map((l) => `
-      <div class="entry-head"><span>${esc(l.name)}</span><span class="entry-date">${esc(l.level)}</span></div>`).join('');
+      <div class="entry-head"><span>${esc(l.name)}</span><span class="entry-date">${esc(l.level === 'ojczysty' ? d('native') : l.level)}</span></div>`).join('');
   }
 
   function interestsHtml() {
@@ -384,23 +396,23 @@
     modern: () => `
       <aside class="sidebar">
         ${photoHtml()}
-        ${section('Kontakt', contactList())}
-        ${section('Umiejętności', skillsHtml())}
-        ${section('Języki', languagesHtml())}
-        ${section('Zainteresowania', interestsHtml())}
+        ${section(d('contact'), contactList())}
+        ${section(d('skills'), skillsHtml())}
+        ${section(d('languages'), languagesHtml())}
+        ${section(d('interests'), interestsHtml())}
       </aside>
       <div class="main">
         <h1 class="name">${esc(state.fullName)}</h1>
         <div class="role">${esc(state.title)}</div>
-        ${section('Profil', summaryHtml())}
-        ${section('Doświadczenie', experienceHtml())}
-        ${section('Wykształcenie', educationHtml())}
+        ${section(d('profile'), summaryHtml())}
+        ${section(d('experience'), experienceHtml())}
+        ${section(d('education'), educationHtml())}
         ${consentHtml()}
       </div>`,
 
     classic: () => {
-      const skills = section('Umiejętności', skillsHtml());
-      const side = section('Języki', languagesHtml()) + section('Zainteresowania', interestsHtml());
+      const skills = section(d('skills'), skillsHtml());
+      const side = section(d('languages'), languagesHtml()) + section(d('interests'), interestsHtml());
       return `
         <header>
           ${photoHtml()}
@@ -408,9 +420,9 @@
           <div class="role">${esc(state.title)}</div>
           ${contactList()}
         </header>
-        ${section('Profil', summaryHtml())}
-        ${section('Doświadczenie', experienceHtml())}
-        ${section('Wykształcenie', educationHtml())}
+        ${section(d('profile'), summaryHtml())}
+        ${section(d('experience'), experienceHtml())}
+        ${section(d('education'), educationHtml())}
         ${skills && side.trim() ? `<div class="two-col"><div>${skills}</div><div>${side}</div></div>` : skills + side}
         ${consentHtml()}`;
     },
@@ -430,12 +442,12 @@
           </div>
           ${photoHtml()}
         </header>
-        ${row('Profil', summaryHtml())}
-        ${row('Doświadczenie', experienceHtml())}
-        ${row('Wykształcenie', educationHtml())}
-        ${row('Umiejętności', skillsHtml())}
-        ${row('Języki', languagesHtml())}
-        ${row('Zainteresowania', interestsHtml())}
+        ${row(d('profile'), summaryHtml())}
+        ${row(d('experience'), experienceHtml())}
+        ${row(d('education'), educationHtml())}
+        ${row(d('skills'), skillsHtml())}
+        ${row(d('languages'), languagesHtml())}
+        ${row(d('interests'), interestsHtml())}
         ${consentHtml()}`;
     },
   };
@@ -450,8 +462,8 @@
   const docEmpty = () => (state.doc === 'letter' ? letterEmpty() : isEmpty());
 
   function todayLine() {
-    const date = new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
-    return `${state.location.trim() ? `${state.location.trim()}, ` : ''}${date} r.`;
+    const date = new Date().toLocaleDateString(d('dateLocale'), { day: 'numeric', month: 'long', year: 'numeric' }) + d('dateSuffix');
+    return `${state.location.trim() ? `${state.location.trim()}, ` : ''}${date}`;
   }
 
   function renderLetter() {
@@ -460,7 +472,7 @@
     letterSheet.style.setProperty('--accent', state.accent);
     letterForm.elements.date.placeholder = todayLine();
     if (letterEmpty()) {
-      letterSheet.innerHTML = '<p class="empty">Napisz treść listu albo wstaw szkic z CV, a tutaj pojawi się podgląd.</p>';
+      letterSheet.innerHTML = `<p class="empty">${esc(t('emptyLetter'))}</p>`;
       return;
     }
     const contact = [state.email, state.phone, state.location, state.website]
@@ -483,7 +495,7 @@
       </header>
       <p class="date">${esc(L.date.trim() || todayLine())}</p>
       ${to ? `<div class="to">${to}</div>` : ''}
-      ${L.position.trim() ? `<p class="subject">Dotyczy: rekrutacji na stanowisko ${esc(L.position.trim())}</p>` : ''}
+      ${L.position.trim() ? `<p class="subject">${esc(d('subject')(L.position.trim()))}</p>` : ''}
       ${L.greeting.trim() ? `<p class="greeting">${esc(L.greeting.trim())}</p>` : ''}
       <div class="body">${paragraphs}</div>
       ${L.closing.trim() ? `<p class="closing">${esc(L.closing.trim())}</p>` : ''}
@@ -496,7 +508,7 @@
     cv.className = `sheet cv tpl-${state.template}`;
     cv.style.setProperty('--accent', state.accent);
     cv.innerHTML = isEmpty()
-      ? '<p class="empty">Zacznij wypełniać formularz, a tutaj pojawi się Twoje CV.</p>'
+      ? `<p class="empty">${esc(t('emptyCv'))}</p>`
       : templates[state.template]();
 
     LISTS.forEach((l) => {
@@ -508,7 +520,7 @@
     thumb.classList.toggle('has-photo', !!state.photo);
     $('#photo-remove').hidden = !state.photo;
     $('#sample-banner').hidden = !state.isSample;
-    document.title = state.fullName.trim() ? `CV – ${state.fullName.trim()}` : 'Kreator CV';
+    document.title = state.fullName.trim() ? `CV – ${state.fullName.trim()}` : t('appName');
     fitPreview();
   }
 
@@ -586,7 +598,7 @@
 
   const fileBase = (prefix = 'cv') => {
     const slug = state.fullName.trim().toLowerCase()
-      .replace(/[^a-z0-9ąćęłńóśźż]+/gi, '-').replace(/^-+|-+$/g, '');
+      .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
     return slug ? `${prefix}-${slug}` : prefix;
   };
 
@@ -595,14 +607,14 @@
     if (downloads) {
       try {
         await downloads.save({ filename, data });
-        toast('Zapisano plik.');
+        toast(t('toastSaved'));
       } catch (err) {
-        if (err?.code !== 'declined') toast('Nie udało się zapisać pliku w tym widoku.');
+        if (err?.code !== 'declined') toast(t('toastSaveError'));
       }
       return;
     }
     if (inSandbox) {
-      toast('Zapisywanie plików nie jest dostępne w tym widoku.');
+      toast(t('toastNoSave'));
       return;
     }
     const a = document.createElement('a');
@@ -629,7 +641,7 @@
   async function exportPdf() {
     const isLetter = state.doc === 'letter';
     if (docEmpty()) {
-      toast(isLetter ? 'Najpierw napisz treść listu.' : 'Najpierw uzupełnij CV.');
+      toast(t(isLetter ? 'needLetter' : 'needCv'));
       return;
     }
     track(isLetter ? 'pdf-list' : 'pdf-cv', isLetter ? 'Pobierz PDF: list motywacyjny' : 'Pobierz PDF: CV', true);
@@ -640,7 +652,8 @@
     }
     const btn = $('#btn-pdf');
     btn.disabled = true;
-    btn.textContent = 'Tworzę PDF…';
+    const label = btn.innerHTML;
+    btn.textContent = t('pdfBusy');
     try {
       const html2pdf = await loadHtml2pdf();
       await document.fonts?.ready;
@@ -663,15 +676,15 @@
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css', 'legacy'], avoid: ['.entry', '.skill', '.body p'] },
         }).from(copy).outputPdf('blob');
-        await saveFile(`${fileBase(isLetter ? 'list-motywacyjny' : 'cv')}.pdf`, blob);
+        await saveFile(`${fileBase(isLetter ? d('fileLetter') : 'cv')}.pdf`, blob);
       } finally {
         holder.remove();
       }
     } catch (_) {
-      toast('Nie udało się utworzyć PDF. Sprawdź połączenie z internetem i spróbuj ponownie.');
+      toast(t('pdfFail'));
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Pobierz PDF';
+      btn.innerHTML = label;
     }
   }
 
@@ -690,7 +703,7 @@
     } else if (btn.hasAttribute('data-remove')) {
       const item = btn.closest('.item');
       const typed = $$('input:not([type=range]), textarea', item).some((el) => el.value.trim());
-      if (typed && !(await ask('Usunąć tę pozycję?', 'Usuń'))) return;
+      if (typed && !(await ask(t('confirmRemoveItem'), t('remove')))) return;
       item.remove();
     } else if (btn.dataset.move) {
       const item = btn.closest('.item');
@@ -733,7 +746,7 @@
       state.photo = await resizeImage(file);
       commit();
     } catch (_) {
-      toast('Nie udało się wczytać zdjęcia. Wybierz plik JPG lub PNG.');
+      toast(t('photoFail'));
     }
   });
   $('#photo-input').addEventListener('input', (ev) => ev.stopPropagation());
@@ -757,130 +770,97 @@
     commit();
   }
 
-  const lowerFirst = (s) => (/^\p{Lu}\p{Ll}/u.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
-  // Ends a sentence without doubling the dot after names like "S.A." or "sp. z o.o.".
-  const dot = (s) => (s.endsWith('.') ? s : `${s}.`);
-  const joinPl = (items) => (items.length > 1
-    ? `${items.slice(0, -1).join(', ')} oraz ${items[items.length - 1]}` : items[0] || '');
-
-  // Builds a letter from the CV without AI. Sentences avoid gendered verb
-  // forms unless the user picked one, since Polish past tense is gendered.
+  // Builds a letter from the CV without AI, in the document language
+  // (the sentences live in i18n.js).
   function draftFromCv() {
     const L = state.letter;
-    const g = (f, m, n) => (L.gender === 'f' ? f : L.gender === 'm' ? m : n);
-    const position = L.position.trim() || state.title.trim() || '[stanowisko]';
-    const company = L.company.trim() || '[nazwa firmy]';
-    const jobs = filled(state.experience, ['role', 'company']);
-    const skills = filled(state.skills, ['name']).map((s) => s.name.trim()).slice(0, 5);
-    const langs = filled(state.languages, ['name'])
-      .filter((l) => l.level !== 'ojczysty')
-      .map((l) => `${l.name.trim().toLowerCase()} (${l.level})`);
-    const concise = L.tone === 'concise';
-    const paras = [];
-
-    const target = `stanowisko ${position} w firmie ${company}`;
-    const opening = L.tone === 'warm'
-      ? g(
-        dot(`Z ogromną radością przeczytałam ofertę pracy na ${target}`),
-        dot(`Z ogromną radością przeczytałem ofertę pracy na ${target}`),
-        dot(`Z dużym zainteresowaniem zgłaszam swoją kandydaturę na ${target}`),
-      )
-      : dot(`Zwracam się z prośbą o rozpatrzenie mojej kandydatury na ${target}`);
-    paras.push(
-      `${opening} ${g('Jestem przekonana', 'Jestem przekonany', 'Uważam')}, że moje doświadczenie `
-      + 'i umiejętności pozwolą mi szybko wnieść realną wartość do Państwa zespołu.',
-    );
-
-    if (jobs.length) {
-      const [cur, ...rest] = jobs;
-      const role = cur.role.trim();
-      const at = cur.company.trim() ? ` w firmie ${cur.company.trim()}` : '';
-      const current = /obecn|teraz|nadal|present/i.test(cur.end || '');
-      let p = current
-        ? dot(`Obecnie pracuję${role ? ` na stanowisku ${role}` : ''}${at}`)
-        : dot(`Moje ostatnie stanowisko to ${role || 'praca'}${at}`);
-      const bullets = (cur.description || '').split('\n')
-        .map((l) => l.replace(/^[-•*]\s*/, '').trim().replace(/\.$/, '')).filter(Boolean).slice(0, 3);
-      if (bullets.length) p += ` Do moich zadań i osiągnięć należą m.in.: ${joinPl(bullets.map(lowerFirst))}.`;
-      if (rest.length && !concise) {
-        const earlier = rest.slice(0, 2).map((j) => [j.role.trim(), j.company.trim() && `w ${j.company.trim()}`].filter(Boolean).join(' '));
-        p += ` ${dot(`Wcześniejsze doświadczenie obejmuje pracę jako ${joinPl(earlier)}`)}`;
-      }
-      paras.push(p);
-    } else if (state.summary.trim()) {
-      paras.push(state.summary.trim());
-    }
-
-    const strengths = [];
-    if (skills.length) strengths.push(`Moje najmocniejsze strony to ${joinPl(skills)}.`);
-    if (langs.length && !concise) strengths.push(`Znam języki: ${langs.join(', ')}.`);
-    if (strengths.length) paras.push(strengths.join(' '));
-
-    paras.push(
-      'Chętnie opowiem więcej o swoim doświadczeniu podczas rozmowy. '
-      + 'Dziękuję za poświęcony czas i rozważenie mojej kandydatury.',
-    );
-    return paras.join('\n\n');
+    const jobs = filled(state.experience, ['role', 'company']).map((j) => ({
+      role: j.role.trim(),
+      company: j.company.trim(),
+      current: CURRENT_JOB.test(j.end || ''),
+      bullets: (j.description || '').split('\n')
+        .map((l) => l.replace(/^[-•*]\s*/, '').trim().replace(/\.$/, '')).filter(Boolean).slice(0, 3),
+    }));
+    return DRAFT[state.docLang]({
+      gender: L.gender,
+      tone: L.tone,
+      position: L.position.trim() || state.title.trim(),
+      company: L.company.trim(),
+      jobs,
+      skills: filled(state.skills, ['name']).map((s) => s.name.trim()).slice(0, 5),
+      langs: filled(state.languages, ['name'])
+        .filter((l) => l.level !== 'ojczysty')
+        .map((l) => ({ name: l.name.trim(), level: l.level })),
+      summary: state.summary.trim(),
+    });
   }
 
   $('#btn-draft').addEventListener('click', async () => {
-    if (state.letter.body.trim() && !(await ask('Zastąpić obecną treść listu szkicem z CV?', 'Zastąp'))) return;
+    if (state.letter.body.trim() && !(await ask(t('confirmDraft'), t('replace')))) return;
     setBody(draftFromCv());
-    toast('Wstawiono szkic. Przeczytaj go i dopasuj do siebie.');
+    toast(t('draftDone'));
   });
 
   // Plain-text CV for the AI prompt.
   function cvAsText() {
     const lines = [];
     const push = (label, value) => { if (value && value.trim()) lines.push(`${label}: ${value.trim()}`); };
-    push('Imię i nazwisko', state.fullName);
-    push('Obecne stanowisko', state.title);
-    push('Podsumowanie', state.summary);
+    const span = (e) => [e.start, e.end].filter(Boolean).join(' – ');
+    push('Name', state.fullName);
+    push('Current title', state.title);
+    push('Summary', state.summary);
     filled(state.experience, ['role', 'company']).forEach((e) => {
-      lines.push(`Doświadczenie: ${[e.role, e.company].map((s) => s.trim()).filter(Boolean).join(', ')} (${[e.start, e.end].filter(Boolean).join(' – ')})`);
+      lines.push(`Experience: ${[e.role, e.company].map((s) => s.trim()).filter(Boolean).join(', ')} (${span(e)})`);
       (e.description || '').split('\n').map((l) => l.trim()).filter(Boolean).forEach((l) => lines.push(`  - ${l}`));
     });
     filled(state.education, ['school', 'degree']).forEach((e) => {
-      lines.push(`Wykształcenie: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${[e.start, e.end].filter(Boolean).join(' – ')})`);
+      lines.push(`Education: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${span(e)})`);
     });
     const skills = filled(state.skills, ['name'])
       .map((s) => (state.skillBars ? `${s.name.trim()} (${s.level}/5)` : s.name.trim()));
-    if (skills.length) lines.push(`Umiejętności: ${skills.join(', ')}`);
-    const langs = filled(state.languages, ['name']).map((l) => `${l.name.trim()} (${l.level})`);
-    if (langs.length) lines.push(`Języki: ${langs.join(', ')}`);
-    push('Zainteresowania', state.interests);
+    if (skills.length) lines.push(`Skills: ${skills.join(', ')}`);
+    const langs = filled(state.languages, ['name'])
+      .map((l) => `${l.name.trim()} (${l.level === 'ojczysty' ? 'native' : l.level})`);
+    if (langs.length) lines.push(`Languages: ${langs.join(', ')}`);
+    push('Interests', state.interests);
     return lines.join('\n');
   }
 
   function aiPrompt() {
     const L = state.letter;
-    const tone = { formal: 'formalny, profesjonalny', warm: 'ciepły i osobisty, ale profesjonalny', concise: 'zwięzły i rzeczowy (ok. 150 słów)' }[L.tone];
-    const gender = {
-      f: 'pisz w formie żeńskiej (np. „pracowałam”, „jestem gotowa”)',
-      m: 'pisz w formie męskiej (np. „pracowałem”, „jestem gotowy”)',
-      neutral: 'unikaj form zależnych od płci (np. zamiast „pracowałem” pisz „pracuję”, „moje doświadczenie obejmuje”)',
+    const language = d('promptName');
+    const tone = {
+      formal: 'formal and professional',
+      warm: 'warm and personal, but professional',
+      concise: 'concise and to the point (about 150 words)',
+    }[L.tone];
+    const gender = state.docLang === 'en' ? '' : {
+      f: ' Use feminine grammatical forms for the writer.',
+      m: ' Use masculine grammatical forms for the writer.',
+      neutral: ' Avoid gendered grammatical forms for the writer (e.g. prefer present tense or phrases like "my experience includes").',
     }[L.gender];
     return [
-      'Napisz treść listu motywacyjnego po polsku.',
+      `Write the body of a cover letter in ${language}.`,
       '',
-      'Zasady:',
-      '- Zwróć WYŁĄCZNIE akapity treści listu (3–4 akapity, łącznie 180–280 słów), oddzielone pustą linią.',
-      '- Bez zwrotu grzecznościowego na początku, bez zakończenia typu „Z poważaniem”, bez podpisu, bez daty, bez nagłówków i bez formatowania Markdown.',
-      `- Pierwsza osoba liczby pojedynczej; ${gender}.`,
-      `- Ton: ${tone}.`,
-      '- Opieraj się wyłącznie na faktach z CV. Nie wymyślaj doświadczenia, liczb, firm ani certyfikatów. Jeśli ogłoszenie wymaga czegoś, czego nie ma w CV, nie twierdź, że kandydat to ma.',
-      '- Jeśli podano ogłoszenie, nawiąż konkretnie do 2–3 najważniejszych wymagań i pokaż, jak doświadczenie kandydata im odpowiada.',
-      '- Unikaj pustych frazesów („jestem osobą kreatywną i komunikatywną”); używaj konkretów z CV.',
+      'Rules:',
+      `- Return ONLY the body paragraphs in ${language} (3–4 paragraphs, 180–280 words in total), separated by a blank line.`,
+      '- No greeting at the start, no closing such as "Yours sincerely", no signature, no date, no headings and no Markdown.',
+      `- First person singular.${gender}`,
+      `- Tone: ${tone}.`,
+      '- Use only facts from the CV. Do not invent experience, numbers, companies or certificates. If the job ad asks for something that is not in the CV, do not claim the candidate has it.',
+      '- If a job ad is given, refer specifically to its 2–3 most important requirements and show how the candidate\'s experience matches them.',
+      '- Avoid empty clichés ("I am a creative and communicative person"); use concrete details from the CV.',
+      '- The CV and the job ad may be in another language; the letter must still be written entirely in ' + language + '.',
       '',
-      `Stanowisko: ${L.position.trim() || state.title.trim() || '(nie podano)'}`,
-      `Firma: ${L.company.trim() || '(nie podano)'}`,
-      L.extra.trim() ? `Na co położyć nacisk: ${L.extra.trim()}` : '',
+      `Position: ${L.position.trim() || state.title.trim() || '(not given)'}`,
+      `Company: ${L.company.trim() || '(not given)'}`,
+      L.extra.trim() ? `Emphasise: ${L.extra.trim()}` : '',
       '',
-      'Ogłoszenie:',
-      `"""${L.jobAd.trim() || '(nie podano)'}"""`,
+      'Job ad:',
+      `"""${L.jobAd.trim() || '(not given)'}"""`,
       '',
-      'CV kandydata:',
-      `"""${cvAsText() || '(puste)'}"""`,
+      'Candidate CV:',
+      `"""${cvAsText() || '(empty)'}"""`,
     ].filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n');
   }
 
@@ -901,10 +881,10 @@
   $('#btn-ai').addEventListener('click', async () => {
     if (!sampleFn) return;
     if (isEmpty()) {
-      toast('Najpierw uzupełnij CV — list powstaje na jego podstawie.');
+      toast(t('aiNeedCv'));
       return;
     }
-    if (state.letter.body.trim() && !(await ask('Zastąpić obecną treść listu nową wersją od AI?', 'Zastąp'))) return;
+    if (state.letter.body.trim() && !(await ask(t('confirmAi'), t('replace')))) return;
     const previous = state.letter.body;
     const body = letterForm.elements.body;
     const aiBtn = $('#btn-ai');
@@ -913,33 +893,33 @@
     aiBtn.disabled = true;
     stopBtn.hidden = false;
     body.readOnly = true;
-    setAiStatus('Claude pisze list… To może potrwać do minuty.');
+    setAiStatus(t('aiThinking'));
     let got = false;
     try {
       const { text } = await sampleFn(aiPrompt(), {
         signal: aiAbort.signal,
         cache: false,
-        onText: ({ text: t }) => {
+        onText: ({ text: partial }) => {
           got = true;
-          setAiStatus('Claude pisze list…');
-          body.value = t;
-          state.letter.body = t;
+          setAiStatus(t('aiWriting'));
+          body.value = partial;
+          state.letter.body = partial;
           renderLetter();
           fitPreview();
         },
       });
       setBody(text.trim());
-      setAiStatus('Gotowe. Przeczytaj list i popraw to, co nie brzmi jak Ty.');
+      setAiStatus(t('aiDone'));
     } catch (err) {
       const kept = (err?.text || '').trim();
       setBody(kept || (got ? body.value : previous));
       const messages = {
-        cancelled: kept ? 'Zatrzymano. Zostawiono napisaną część.' : 'Zatrzymano.',
-        not_granted: 'Bez zgody na użycie Claude możesz napisać list sam albo wstawić szkic z CV.',
-        rate_limited: 'Za dużo zapytań naraz. Spróbuj ponownie za chwilę.',
-        prompt_too_large: 'Ogłoszenie jest za długie. Skróć je do najważniejszych wymagań.',
+        cancelled: t(kept ? 'aiCancelledKept' : 'aiCancelled'),
+        not_granted: t('aiNotGranted'),
+        rate_limited: t('aiRateLimited'),
+        prompt_too_large: t('aiTooLarge'),
       };
-      setAiStatus(messages[err?.code] || 'Nie udało się napisać listu. Spróbuj ponownie albo wstaw szkic z CV.');
+      setAiStatus(messages[err?.code] || t('aiFailed'));
       if (['not_granted', 'sampling_disabled', 'capability_disabled', 'capability_removed', 'not_declared'].includes(err?.code)) hideAi();
     } finally {
       aiBtn.disabled = false;
@@ -963,8 +943,11 @@
 
   $('#btn-sample').addEventListener('click', async () => {
     if ((!isEmpty() || !letterEmpty()) && !state.isSample
-      && !(await ask('Zastąpić Twoje CV i list przykładowymi danymi?', 'Zastąp'))) return;
-    state = { ...sampleState(), template: state.template, accent: state.accent, doc: state.doc };
+      && !(await ask(t('confirmSample'), t('replace')))) return;
+    state = {
+      ...sampleState(state.docLang),
+      template: state.template, accent: state.accent, doc: state.doc, uiLang: state.uiLang,
+    };
     fillForm();
     save();
     render();
@@ -972,8 +955,8 @@
 
   const clearAll = async () => {
     if ((!isEmpty() || !letterEmpty()) && !state.isSample
-      && !(await ask('Usunąć wszystkie dane z CV i listu motywacyjnego? Tej operacji nie można cofnąć.', 'Wyczyść'))) return;
-    state = { ...emptyState(), template: state.template, accent: state.accent };
+      && !(await ask(t('confirmClear'), t('reset')))) return;
+    state = { ...emptyState(state.docLang), template: state.template, accent: state.accent, uiLang: state.uiLang };
     fillForm();
     save();
     render();
@@ -995,17 +978,27 @@
     try {
       const data = JSON.parse(await file.text());
       if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('invalid');
-      state = { ...normalize(data), isSample: false };
+      // The file's document language is kept; the interface stays in the viewer's language.
+      state = { ...normalize(data), isSample: false, uiLang: state.uiLang };
+      applyLanguage();
       fillForm();
       save();
       render();
-      toast('Wczytano dane z pliku.');
+      toast(t('importOk'));
     } catch (_) {
-      toast('To nie jest plik zapisany w tej aplikacji (JSON).');
+      toast(t('importBad'));
     }
   });
 
   $('#btn-pdf').addEventListener('click', exportPdf);
+
+  $('#ui-lang').addEventListener('change', (ev) => setUiLang(ev.target.value));
+  $$('.doc-lang').forEach((sel) => sel.addEventListener('change', (ev) => {
+    ev.stopPropagation();
+    setDocLang(ev.target.value);
+    applyLanguage();
+  }));
+  $$('.doc-lang').forEach((sel) => sel.addEventListener('input', (ev) => ev.stopPropagation()));
 
   $$('[data-view-btn]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.viewBtn)));
 
@@ -1021,9 +1014,11 @@
 
   // ---------- Init ----------
   // First visit opens with clearly marked sample data, so the tool shows what it does.
-  state = load() || sampleState();
+  // The first visit picks the phone's or browser's language.
+  state = load() || sampleState(detectLang());
+  applyLanguage();
   fillForm();
   render();
   // Fixed title: document.title contains the user's name, which must not leave the device.
-  track(location.pathname, 'Kreator CV');
+  track(location.pathname, 'CV builder');
 })();

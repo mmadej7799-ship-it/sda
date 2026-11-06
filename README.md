@@ -22,6 +22,7 @@ Otwórz `index.html` w przeglądarce (albo uruchom `python3 -m http.server` i we
   - układ polskiego listu: data w prawym górnym rogu, adresat, „Dotyczy:”, zwrot grzecznościowy, podpis, opcjonalna klauzula RODO
   - **Wstaw szkic z CV** — gotowy tekst zbudowany z doświadczenia i umiejętności, z wyborem tonu i formy gramatycznej (żeńska / męska / neutralna)
   - **Napisz z AI** (tylko w wersji na claude.ai) — Claude pisze list na podstawie CV i ogłoszenia, bez dopisywania faktów spoza CV
+- **Języki: polski, ukraiński, angielski** — osobno język interfejsu (PL / UA / EN w nagłówku) i język dokumentu (CV i list); przy pierwszym wejściu wybierany według języka telefonu. Tłumaczenia są w `i18n.js`
 - Umiejętności ze słupkami poziomu albo bez (przełącznik „Pokazuj poziom”) — wtedy jako etykiety
 - Tryb jasny i ciemny interfejsu
 
@@ -47,5 +48,6 @@ Darmowe GitHub Pages wymaga publicznego repozytorium. Na zwykłej stronie nie ma
 
 - `index.html` — układ strony i szablony pozycji formularza
 - `styles.css` — style edytora, szablonów CV, widoku mobilnego i wydruku
+- `i18n.js` — tłumaczenia (interfejs, teksty dokumentów, szkice listu, przykłady)
 - `app.js` — logika: stan, renderowanie podglądu, zapis, import/eksport, PDF
 - `scripts/build-artifact.py` — budowanie wersji jednoplikowej
