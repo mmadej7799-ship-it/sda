@@ -425,6 +425,41 @@ textarea[readonly] { opacity: .75; }
 .cv.tpl-minimal .row { display: grid; grid-template-columns: 130px 1fr; gap: 18px; }
 .cv.tpl-minimal .row .section-title { font-size: 9pt; padding-top: 2px; }
 
+/* Bold: full-width accent band, main column with a timeline, narrow side column */
+.cv.tpl-bold { display: flex; flex-direction: column; }
+.cv.tpl-bold .band {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 48px 32px;
+  background: var(--accent);
+  color: #ffffff;
+}
+.cv.tpl-bold .name { font-size: 30pt; font-weight: 700; line-height: 1.05; letter-spacing: -.015em; }
+.cv.tpl-bold .role { margin-top: 6px; font-size: 13pt; font-weight: 600; opacity: .9; }
+.cv.tpl-bold .contact { flex-direction: row; flex-wrap: wrap; gap: 4px 18px; margin-top: 14px; font-size: 9.5pt; }
+.cv.tpl-bold .contact .k { display: none; }
+.cv.tpl-bold .photo { width: 120px; height: 120px; flex: none; border: 4px solid rgba(255, 255, 255, .75); }
+.cv.tpl-bold .cols { display: grid; grid-template-columns: 1fr 210px; gap: 32px; padding: 30px 48px 0; }
+.cv.tpl-bold .col-main { min-width: 0; }
+.cv.tpl-bold .col-side { padding-left: 24px; border-left: 1px solid #e2e8f0; }
+.cv.tpl-bold .col-main .entry { position: relative; padding-left: 20px; border-left: 2px solid color-mix(in srgb, var(--accent) 30%, #ffffff); margin-bottom: 0; padding-bottom: 14px; }
+.cv.tpl-bold .col-main .entry::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--accent);
+  box-sizing: border-box;
+}
+.cv.tpl-bold .col-main .entry:last-child { padding-bottom: 4px; }
+.cv.tpl-bold .foot { margin-top: auto; padding: 0 48px 36px; }
+
 /* Cover letter: letterhead in the CV's accent, Polish business-letter layout
    (place and date top right, recipient block, "Dotyczy:" subject line). */
 .letter { display: flex; flex-direction: column; padding: 56px 68px 48px; font-size: 11pt; line-height: 1.6; }
@@ -434,6 +469,8 @@ textarea[readonly] { opacity: .75; }
 .letter.tpl-minimal .lh-name { font-weight: 300; color: #1e293b; }
 .letter.tpl-minimal .lh { border-bottom-width: 1px; }
 .letter .lh-role { margin-top: 3px; color: #475569; }
+.letter.tpl-bold .lh { margin: -56px -68px 30px; padding: 34px 68px 28px; background: var(--accent); border-bottom: 0; color: #ffffff; }
+.letter.tpl-bold .lh-name, .letter.tpl-bold .lh-role, .letter.tpl-bold .lh-contact { color: #ffffff; }
 .letter .lh-contact { text-align: right; font-size: 9.5pt; line-height: 1.5; color: #475569; }
 .letter .date { text-align: right; margin-bottom: 26px; }
 .letter .to { margin-bottom: 26px; white-space: pre-line; }
@@ -540,8 +577,8 @@ textarea[readonly] { opacity: .75; }
   .grid { grid-template-columns: 1fr; }
   .grid-compact { grid-template-columns: 1fr; gap: 8px; }
   .look { flex-direction: column; align-items: stretch; }
-  .look .segmented { width: 100%; }
-  .look .segmented label { flex: 1; text-align: center; }
+  .look .segmented { width: 100%; display: grid !important; grid-template-columns: 1fr 1fr; }
+  .look .segmented label { text-align: center; }
   .brand { display: none; }
   .docswitch { margin-left: 0; }
   .topbar-inner { gap: 8px; }

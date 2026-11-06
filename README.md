@@ -11,9 +11,10 @@ Otwórz `index.html` w przeglądarce (albo uruchom `python3 -m http.server` i we
 - Formularz z podglądem CV na żywo (format A4, skalowany do szerokości ekranu)
 - Na telefonie: zakładki **Edycja / Podgląd** na dole ekranu, zwijane sekcje formularza, duże pola dotykowe
 - Sekcje: dane osobowe, zdjęcie, podsumowanie, doświadczenie, wykształcenie, umiejętności (z poziomem), języki, zainteresowania, klauzula RODO
-- 3 szablony (Nowoczesny, Klasyczny, Minimalny) i wybór koloru akcentu
+- 4 szablony (Nowoczesny, Klasyczny, Minimalny, Wyrazisty) i wybór koloru akcentu
 - Dodawanie, usuwanie i zmiana kolejności pozycji
 - Automatyczny zapis w przeglądarce (localStorage)
+- **Pobierz Word (DOCX)** (menu „Plik”) — edytowalny dokument Word dla CV i listu: prawdziwe nagłówki i punktory, kolor akcentu, zdjęcie; generowany w przeglądarce bez bibliotek (`docx.js`)
 - Eksport/import danych do pliku JSON — tak przeniesiesz CV między urządzeniami
 - **Pobierz PDF**: w wersji lokalnej otwiera okno drukowania (wybierz „Zapisz jako PDF”; tekst w PDF da się zaznaczać). W wersji opublikowanej na claude.ai PDF jest generowany w przeglądarce (html2pdf.js) i zapisywany jako plik
 - **List motywacyjny** (przełącznik „CV / List” w nagłówku):
@@ -42,12 +43,13 @@ Darmowe GitHub Pages wymaga publicznego repozytorium. Na zwykłej stronie nie ma
 
 ## Wersja jednoplikowa
 
-`python3 scripts/build-artifact.py` łączy `index.html`, `styles.css` i `app.js` w jeden plik `dist/kreator-cv.html` (do publikacji jako Artifact na claude.ai).
+`python3 scripts/build-artifact.py` łączy `index.html`, `styles.css` i wszystkie skrypty w jeden plik `dist/kreator-cv.html` (do publikacji jako Artifact na claude.ai).
 
 ## Struktura
 
 - `index.html` — układ strony i szablony pozycji formularza
 - `styles.css` — style edytora, szablonów CV, widoku mobilnego i wydruku
+- `docx.js` — budowanie plików Word (DOCX)
 - `i18n.js` — tłumaczenia (interfejs, teksty dokumentów, szkice listu, przykłady)
 - `app.js` — logika: stan, renderowanie podglądu, zapis, import/eksport, PDF
 - `scripts/build-artifact.py` — budowanie wersji jednoplikowej

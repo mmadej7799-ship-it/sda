@@ -29,6 +29,7 @@
           <button type="button" id="btn-sample" class="btn btn-ghost" data-i18n="sample">Wczytaj przykład</button>
           <label class="btn btn-ghost" for="btn-import" data-i18n="import">Import JSON</label>
           <input type="file" id="btn-import" accept="application/json,.json" hidden>
+          <button type="button" id="btn-docx" class="btn btn-ghost" data-i18n="docx">Pobierz Word (DOCX)</button>
           <button type="button" id="btn-export" class="btn btn-ghost" data-i18n="export">Eksport JSON</button>
           <button type="button" id="btn-reset" class="btn btn-ghost btn-danger" data-i18n="reset">Wyczyść</button>
         </div>
@@ -142,6 +143,7 @@
           <label><input type="radio" name="template" value="modern" checked><span data-i18n="tplModern">Nowoczesny</span></label>
           <label><input type="radio" name="template" value="classic"><span data-i18n="tplClassic">Klasyczny</span></label>
           <label><input type="radio" name="template" value="minimal"><span data-i18n="tplMinimal">Minimalny</span></label>
+          <label><input type="radio" name="template" value="bold"><span data-i18n="tplBold">Wyrazisty</span></label>
         </fieldset>
         <fieldset class="swatches" id="accent-picker">
           <legend data-i18n="color">Kolor</legend>
@@ -318,6 +320,7 @@
   </template>
 
   <script src="i18n.js"></script>
+  <script src="docx.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

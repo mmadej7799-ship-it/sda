@@ -7,7 +7,7 @@
     'fullName', 'title', 'email', 'phone', 'location', 'website',
     'summary', 'interests', 'consent',
   ];
-  const TEMPLATES = ['modern', 'classic', 'minimal'];
+  const TEMPLATES = ['modern', 'classic', 'minimal', 'bold'];
   const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
   // GoatCounter site code (the "NAME" in NAME.goatcounter.com). Empty = no counting.
   // Only page views and PDF clicks are sent, never anything typed into the form.
@@ -450,6 +450,30 @@
         ${row(d('interests'), interestsHtml())}
         ${consentHtml()}`;
     },
+
+    // Full-width colour band, then a main column with a timeline and a side column.
+    bold: () => `
+      <header class="band">
+        <div class="band-text">
+          <h1 class="name">${esc(state.fullName)}</h1>
+          <div class="role">${esc(state.title)}</div>
+          ${contactList()}
+        </div>
+        ${photoHtml()}
+      </header>
+      <div class="cols">
+        <div class="col-main">
+          ${section(d('profile'), summaryHtml())}
+          ${section(d('experience'), experienceHtml())}
+          ${section(d('education'), educationHtml())}
+        </div>
+        <aside class="col-side">
+          ${section(d('skills'), skillsHtml())}
+          ${section(d('languages'), languagesHtml())}
+          ${section(d('interests'), interestsHtml())}
+        </aside>
+      </div>
+      <div class="foot">${consentHtml()}</div>`,
   };
 
   function isEmpty() {
@@ -596,10 +620,24 @@
     } catch (_) { /* counting must never break the app */ }
   }
 
+  // File names are kept to ASCII: browsers drop non-Latin download names
+  // (the file then arrives as "download" with no extension), and plain names
+  // travel better as e-mail attachments. Cyrillic uses Ukrainian romanisation.
+  const TRANSLIT = {
+    ł: 'l', а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'ie', ж: 'zh', з: 'z',
+    и: 'y', і: 'i', ї: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+    с: 's', т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'shch', ь: '',
+    ю: 'iu', я: 'ia', ё: 'e', ы: 'y', э: 'e', ъ: '', '’': '', 'ʼ': '', "'": '',
+  };
+  const asciiSlug = (s) => s.toLowerCase()
+    .replace(/[łа-яёєіїґ’ʼ']/g, (c) => TRANSLIT[c] ?? c)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
   const fileBase = (prefix = 'cv') => {
-    const slug = state.fullName.trim().toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
-    return slug ? `${prefix}-${slug}` : prefix;
+    const slug = asciiSlug(state.fullName.trim());
+    const base = asciiSlug(prefix) || 'cv';
+    return slug ? `${base}-${slug}` : base;
   };
 
   async function saveFile(filename, data) {
@@ -609,7 +647,8 @@
         await downloads.save({ filename, data });
         toast(t('toastSaved'));
       } catch (err) {
-        if (err?.code !== 'declined') toast(t('toastSaveError'));
+        if (['rejected_extension', 'extension_not_enabled'].includes(err?.code)) toast(t('formatUnavailable'));
+        else if (err?.code !== 'declined') toast(t('toastSaveError'));
       }
       return;
     }
@@ -636,6 +675,47 @@
       document.head.appendChild(s);
     });
     return html2pdfPromise;
+  }
+
+  // Square, centre-cropped JPEG bytes of the photo, for the round photo in Word.
+  function squarePhotoBytes() {
+    if (!state.photo) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onerror = () => resolve(null);
+      img.onload = () => {
+        const side = Math.min(img.width, img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = Math.min(side, 400);
+        canvas.getContext('2d').drawImage(
+          img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height,
+        );
+        canvas.toBlob(async (blob) => {
+          resolve(blob ? new Uint8Array(await blob.arrayBuffer()) : null);
+        }, 'image/jpeg', 0.9);
+      };
+      img.src = state.photo;
+    });
+  }
+
+  async function exportDocx() {
+    const isLetter = state.doc === 'letter';
+    if (docEmpty()) {
+      toast(t(isLetter ? 'needLetter' : 'needCv'));
+      return;
+    }
+    track(isLetter ? 'docx-list' : 'docx-cv', isLetter ? 'Word: list motywacyjny' : 'Word: CV', true);
+    let blob;
+    try {
+      const ctx = { doc: DOC[state.docLang], filled, dateLine: todayLine() };
+      blob = isLetter
+        ? window.CVDocx.buildLetter(state, ctx)
+        : window.CVDocx.buildCv(state, { ...ctx, photo: await squarePhotoBytes() });
+    } catch (_) {
+      toast(t('docxFail'));
+      return;
+    }
+    await saveFile(`${fileBase(isLetter ? d('fileLetter') : 'cv')}.docx`, blob);
   }
 
   async function exportPdf() {
@@ -991,6 +1071,7 @@
   });
 
   $('#btn-pdf').addEventListener('click', exportPdf);
+  $('#btn-docx').addEventListener('click', exportDocx);
 
   $('#ui-lang').addEventListener('change', (ev) => setUiLang(ev.target.value));
   $$('.doc-lang').forEach((sel) => sel.addEventListener('change', (ev) => {

@@ -11,13 +11,20 @@ import sys
 root = pathlib.Path(__file__).resolve().parent.parent
 html = (root / "index.html").read_text(encoding="utf-8")
 css = (root / "styles.css").read_text(encoding="utf-8")
-js = (root / "app.js").read_text(encoding="utf-8")
-i18n = (root / "i18n.js").read_text(encoding="utf-8")
+
+
+def inline_scripts(markup):
+    """Replace every local <script src="x.js"> with the file's contents."""
+    return re.sub(
+        r'<script src="([\w.-]+\.js)"></script>',
+        lambda m: "<script>\n" + (root / m.group(1)).read_text(encoding="utf-8") + "</script>",
+        markup,
+    )
+
 
 if len(sys.argv) > 2 and sys.argv[1] == "--standalone":
     page = html.replace('<link rel="stylesheet" href="styles.css">', f"<style>\n{css}</style>")
-    page = page.replace('<script src="app.js"></script>', f"<script>\n{js}</script>")
-    page = page.replace('<script src="i18n.js"></script>', f"<script>\n{i18n}</script>")
+    page = inline_scripts(page)
     dest = pathlib.Path(sys.argv[2])
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(page, encoding="utf-8")
@@ -32,8 +39,7 @@ body_data = re.findall(r'data-([\w-]+)="([^"]*)"', re.search(r"<body([^>]*)>", h
 # supplies charset/viewport, and the local stylesheet is inlined below.
 keep = [line.strip() for line in head.splitlines()
         if re.match(r'\s*<(title|meta name="claude|link rel="stylesheet" href="https)', line)]
-body = body.replace('<script src="app.js"></script>', f"<script>\n{js}</script>")
-body = body.replace('<script src="i18n.js"></script>', f"<script>\n{i18n}</script>")
+body = inline_scripts(body)
 
 out = (
     "\n".join(keep)
