@@ -2,159 +2,219 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kreator CV</title>
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-view="edit">
   <header class="topbar">
-    <h1>Kreator CV</h1>
-    <div class="toolbar">
-      <label class="field-inline">Szablon
-        <select id="template">
-          <option value="modern">Nowoczesny</option>
-          <option value="classic">Klasyczny</option>
-          <option value="minimal">Minimalistyczny</option>
-        </select>
-      </label>
-      <label class="field-inline">Kolor
-        <input type="color" id="accent" value="#2563eb">
-      </label>
-      <button type="button" id="btn-sample" class="btn">Przykład</button>
-      <button type="button" id="btn-export" class="btn">Eksport JSON</button>
-      <label class="btn">Import JSON<input type="file" id="btn-import" accept="application/json" hidden></label>
-      <button type="button" id="btn-reset" class="btn btn-danger">Wyczyść</button>
-      <button type="button" id="btn-print" class="btn btn-primary">Pobierz PDF</button>
+    <div class="topbar-inner">
+      <h1 class="brand">Kreator&nbsp;CV</h1>
+      <div class="actions">
+        <button type="button" id="btn-more" class="btn btn-ghost only-narrow" aria-expanded="false" aria-controls="menu">Plik ▾</button>
+        <div id="menu" class="menu">
+          <button type="button" id="btn-sample" class="btn btn-ghost">Wczytaj przykład</button>
+          <label class="btn btn-ghost" for="btn-import">Import JSON</label>
+          <input type="file" id="btn-import" accept="application/json,.json" hidden>
+          <button type="button" id="btn-export" class="btn btn-ghost">Eksport JSON</button>
+          <button type="button" id="btn-reset" class="btn btn-ghost btn-danger">Wyczyść</button>
+        </div>
+        <button type="button" id="btn-pdf" class="btn btn-primary">Pobierz PDF</button>
+      </div>
     </div>
   </header>
 
+  <div id="sample-banner" class="banner" hidden>
+    <p>Wypełniono przykładowymi danymi. Zastąp je swoimi albo zacznij od pustego CV.</p>
+    <button type="button" id="btn-start-empty" class="btn btn-small">Zacznij od zera</button>
+  </div>
+
   <main class="layout">
-    <form id="editor" class="editor" autocomplete="off">
-      <section class="card">
-        <h2>Dane osobowe</h2>
-        <div class="grid">
-          <label>Imię i nazwisko<input name="fullName"></label>
-          <label>Stanowisko<input name="title"></label>
-          <label>E-mail<input name="email" type="email"></label>
-          <label>Telefon<input name="phone"></label>
-          <label>Miejscowość<input name="location"></label>
-          <label>Strona / LinkedIn<input name="website"></label>
+    <form id="editor" class="pane pane-edit" autocomplete="off" novalidate>
+      <details class="card" open>
+        <summary><span>Dane osobowe</span></summary>
+        <div class="card-body">
+          <div class="photo-row">
+            <div class="photo-thumb" id="photo-thumb" aria-hidden="true"></div>
+            <div class="photo-actions">
+              <label class="btn btn-small" for="photo-input">Dodaj zdjęcie</label>
+              <input type="file" id="photo-input" accept="image/*" hidden>
+              <button type="button" id="photo-remove" class="btn btn-small btn-ghost" hidden>Usuń zdjęcie</button>
+            </div>
+          </div>
+          <div class="grid">
+            <label>Imię i nazwisko<input id="f-fullName" name="fullName" autocomplete="name"></label>
+            <label>Stanowisko<input id="f-title" name="title" placeholder="np. Księgowa, Frontend Developer"></label>
+            <label>E-mail<input id="f-email" name="email" type="email" inputmode="email" autocomplete="email"></label>
+            <label>Telefon<input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel"></label>
+            <label>Miejscowość<input id="f-location" name="location" autocomplete="address-level2"></label>
+            <label>Strona / LinkedIn<input id="f-website" name="website" inputmode="url"></label>
+          </div>
         </div>
-        <div class="photo-row">
-          <label>Zdjęcie<input type="file" id="photo-input" accept="image/*"></label>
-          <button type="button" id="photo-remove" class="btn btn-small">Usuń zdjęcie</button>
+      </details>
+
+      <details class="card">
+        <summary><span>Podsumowanie zawodowe</span></summary>
+        <div class="card-body">
+          <label>2–4 zdania o tym, kim jesteś i w czym jesteś dobry
+            <textarea id="f-summary" name="summary" rows="4"></textarea>
+          </label>
         </div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Podsumowanie zawodowe</h2>
-        <label><textarea name="summary" rows="4"></textarea></label>
-      </section>
-
-      <section class="card" data-list="experience">
-        <div class="card-head">
-          <h2>Doświadczenie</h2>
-          <button type="button" class="btn btn-small" data-add="experience">+ Dodaj</button>
+      <details class="card" data-list="experience">
+        <summary><span>Doświadczenie</span><span class="count"></span></summary>
+        <div class="card-body">
+          <div class="list"></div>
+          <button type="button" class="btn btn-add" data-add="experience">+ Dodaj stanowisko</button>
         </div>
-        <div class="list"></div>
-      </section>
+      </details>
 
-      <section class="card" data-list="education">
-        <div class="card-head">
-          <h2>Wykształcenie</h2>
-          <button type="button" class="btn btn-small" data-add="education">+ Dodaj</button>
+      <details class="card" data-list="education">
+        <summary><span>Wykształcenie</span><span class="count"></span></summary>
+        <div class="card-body">
+          <div class="list"></div>
+          <button type="button" class="btn btn-add" data-add="education">+ Dodaj szkołę</button>
         </div>
-        <div class="list"></div>
-      </section>
+      </details>
 
-      <section class="card" data-list="skills">
-        <div class="card-head">
-          <h2>Umiejętności</h2>
-          <button type="button" class="btn btn-small" data-add="skills">+ Dodaj</button>
+      <details class="card" data-list="skills">
+        <summary><span>Umiejętności</span><span class="count"></span></summary>
+        <div class="card-body">
+          <div class="list"></div>
+          <button type="button" class="btn btn-add" data-add="skills">+ Dodaj umiejętność</button>
         </div>
-        <div class="list"></div>
-      </section>
+      </details>
 
-      <section class="card" data-list="languages">
-        <div class="card-head">
-          <h2>Języki</h2>
-          <button type="button" class="btn btn-small" data-add="languages">+ Dodaj</button>
+      <details class="card" data-list="languages">
+        <summary><span>Języki</span><span class="count"></span></summary>
+        <div class="card-body">
+          <div class="list"></div>
+          <button type="button" class="btn btn-add" data-add="languages">+ Dodaj język</button>
         </div>
-        <div class="list"></div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Zainteresowania</h2>
-        <label>Oddziel przecinkami<input name="interests"></label>
-      </section>
+      <details class="card">
+        <summary><span>Zainteresowania</span></summary>
+        <div class="card-body">
+          <label>Oddziel przecinkami<input id="f-interests" name="interests" placeholder="np. bieganie, fotografia"></label>
+        </div>
+      </details>
 
-      <section class="card">
-        <h2>Klauzula RODO</h2>
-        <label class="check"><input type="checkbox" name="consentEnabled"> Dołącz klauzulę</label>
-        <label><textarea name="consent" rows="3"></textarea></label>
-      </section>
+      <details class="card">
+        <summary><span>Klauzula RODO</span></summary>
+        <div class="card-body">
+          <label class="check"><input type="checkbox" id="f-consentEnabled" name="consentEnabled"> Dołącz klauzulę na dole CV</label>
+          <label>Treść klauzuli<textarea id="f-consent" name="consent" rows="4"></textarea></label>
+        </div>
+      </details>
     </form>
 
-    <div class="preview-wrap">
-      <article id="cv" class="cv"></article>
-    </div>
+    <section class="pane pane-preview" aria-label="Podgląd CV">
+      <div class="look">
+        <fieldset class="segmented" id="template-picker">
+          <legend>Szablon</legend>
+          <label><input type="radio" name="template" value="modern" checked><span>Nowoczesny</span></label>
+          <label><input type="radio" name="template" value="classic"><span>Klasyczny</span></label>
+          <label><input type="radio" name="template" value="minimal"><span>Minimalny</span></label>
+        </fieldset>
+        <fieldset class="swatches" id="accent-picker">
+          <legend>Kolor</legend>
+          <label style="--sw:#2563eb"><input type="radio" name="accent" value="#2563eb" aria-label="Niebieski"></label>
+          <label style="--sw:#0f766e"><input type="radio" name="accent" value="#0f766e" aria-label="Morski"></label>
+          <label style="--sw:#7c3aed"><input type="radio" name="accent" value="#7c3aed" aria-label="Fioletowy"></label>
+          <label style="--sw:#b91c1c"><input type="radio" name="accent" value="#b91c1c" aria-label="Bordowy"></label>
+          <label style="--sw:#c2410c"><input type="radio" name="accent" value="#c2410c" aria-label="Pomarańczowy"></label>
+          <label style="--sw:#334155"><input type="radio" name="accent" value="#334155" aria-label="Grafitowy"></label>
+          <label class="custom" title="Własny kolor"><input type="color" id="accent-custom" value="#2563eb" aria-label="Własny kolor"></label>
+        </fieldset>
+      </div>
+      <div class="paper-wrap" id="paper-wrap">
+        <article id="cv" class="cv"></article>
+      </div>
+    </section>
   </main>
+
+  <nav class="tabbar" aria-label="Widok">
+    <button type="button" data-view-btn="edit" aria-pressed="true">Edycja</button>
+    <button type="button" data-view-btn="preview" aria-pressed="false">Podgląd</button>
+  </nav>
+
+  <div id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-text" hidden>
+    <div class="dialog-box">
+      <p id="dialog-text"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn" data-answer="no">Anuluj</button>
+        <button type="button" class="btn btn-primary" data-answer="yes" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <template id="tpl-experience">
     <div class="item">
+      <div class="item-head">
+        <strong class="item-title" data-placeholder="Nowe stanowisko"></strong>
+        <div class="item-actions">
+          <button type="button" class="icon-btn" data-move="-1" aria-label="Przesuń w górę">↑</button>
+          <button type="button" class="icon-btn" data-move="1" aria-label="Przesuń w dół">↓</button>
+          <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+        </div>
+      </div>
       <div class="grid">
-        <label>Stanowisko<input data-field="role"></label>
-        <label>Firma<input data-field="company"></label>
+        <label>Stanowisko<input data-field="role" data-title="1"></label>
+        <label>Firma<input data-field="company" data-title="2"></label>
         <label>Od<input data-field="start" placeholder="np. 03.2021"></label>
         <label>Do<input data-field="end" placeholder="np. obecnie"></label>
       </div>
-      <label>Opis (każda linia to osobny punkt)<textarea data-field="description" rows="3"></textarea></label>
-      <div class="item-actions">
-        <button type="button" class="btn btn-small" data-move="-1" title="W górę">↑</button>
-        <button type="button" class="btn btn-small" data-move="1" title="W dół">↓</button>
-        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
-      </div>
+      <label>Obowiązki i osiągnięcia (każda linia to osobny punkt)<textarea data-field="description" rows="4"></textarea></label>
     </div>
   </template>
 
   <template id="tpl-education">
     <div class="item">
-      <div class="grid">
-        <label>Uczelnia / szkoła<input data-field="school"></label>
-        <label>Kierunek / stopień<input data-field="degree"></label>
-        <label>Od<input data-field="start"></label>
-        <label>Do<input data-field="end"></label>
+      <div class="item-head">
+        <strong class="item-title" data-placeholder="Nowa szkoła"></strong>
+        <div class="item-actions">
+          <button type="button" class="icon-btn" data-move="-1" aria-label="Przesuń w górę">↑</button>
+          <button type="button" class="icon-btn" data-move="1" aria-label="Przesuń w dół">↓</button>
+          <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
+        </div>
       </div>
-      <div class="item-actions">
-        <button type="button" class="btn btn-small" data-move="-1" title="W górę">↑</button>
-        <button type="button" class="btn btn-small" data-move="1" title="W dół">↓</button>
-        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+      <div class="grid">
+        <label>Uczelnia / szkoła<input data-field="school" data-title="1"></label>
+        <label>Kierunek / stopień<input data-field="degree" data-title="2"></label>
+        <label>Od<input data-field="start" inputmode="numeric"></label>
+        <label>Do<input data-field="end"></label>
       </div>
     </div>
   </template>
 
   <template id="tpl-skills">
-    <div class="item item-row">
-      <label>Umiejętność<input data-field="name"></label>
-      <label>Poziom (1–5)<input data-field="level" type="range" min="1" max="5" value="3"></label>
-      <div class="item-actions">
-        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+    <div class="item item-compact">
+      <div class="grid grid-compact">
+        <label>Umiejętność<input data-field="name"></label>
+        <label>Poziom: <output class="level-out">3</output>/5<input data-field="level" type="range" min="1" max="5" value="3"></label>
       </div>
+      <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
     </div>
   </template>
 
   <template id="tpl-languages">
-    <div class="item item-row">
-      <label>Język<input data-field="name"></label>
-      <label>Poziom
-        <select data-field="level">
-          <option>A1</option><option>A2</option><option>B1</option><option selected>B2</option>
-          <option>C1</option><option>C2</option><option>ojczysty</option>
-        </select>
-      </label>
-      <div class="item-actions">
-        <button type="button" class="btn btn-small btn-danger" data-remove>Usuń</button>
+    <div class="item item-compact">
+      <div class="grid grid-compact">
+        <label>Język<input data-field="name"></label>
+        <label>Poziom
+          <select data-field="level">
+            <option>A1</option><option>A2</option><option>B1</option><option selected>B2</option>
+            <option>C1</option><option>C2</option><option>ojczysty</option>
+          </select>
+        </label>
       </div>
+      <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
     </div>
   </template>
 
