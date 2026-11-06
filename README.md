@@ -25,6 +25,15 @@ Otwórz `index.html` w przeglądarce (albo uruchom `python3 -m http.server` i we
 - Tryb jasny i ciemny interfejsu
 - Przy pierwszym uruchomieniu formularz jest wypełniony przykładem; „Zacznij od zera” go czyści
 
+## Publikacja w internecie (GitHub Pages)
+
+1. `python3 scripts/build-artifact.py --standalone dist/strona/index.html` — jeden plik ze wszystkim w środku (albo wgraj `index.html`, `styles.css` i `app.js`).
+2. W repozytorium na GitHubie: **Add file → Upload files**, wgraj plik do gałęzi `main`.
+3. **Settings → Pages → Build and deployment**: Source „Deploy from a branch”, Branch `main`, folder `/ (root)`, **Save**.
+4. Po 1–2 minutach strona działa pod `https://<użytkownik>.github.io/<repozytorium>/`.
+
+Darmowe GitHub Pages wymaga publicznego repozytorium. Na zwykłej stronie nie ma przycisku „Napisz z AI” (działa tylko na claude.ai); „Pobierz PDF” otwiera okno drukowania przeglądarki.
+
 ## Wersja jednoplikowa
 
 `python3 scripts/build-artifact.py` łączy `index.html`, `styles.css` i `app.js` w jeden plik `dist/kreator-cv.html` (do publikacji jako Artifact na claude.ai).

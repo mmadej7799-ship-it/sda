@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-"""Bundle index.html, styles.css and app.js into one HTML fragment for
-publishing as a claude.ai Artifact (the host adds <html>/<head>/<body>)."""
+"""Bundle index.html, styles.css and app.js into one file.
+
+Default: an HTML fragment for publishing as a claude.ai Artifact (the host
+adds <html>/<head>/<body>). With --standalone DEST: a complete page with the
+CSS and JS inlined, ready to upload to any static host (e.g. GitHub Pages)."""
 import pathlib
 import re
 import sys
@@ -9,6 +12,15 @@ root = pathlib.Path(__file__).resolve().parent.parent
 html = (root / "index.html").read_text(encoding="utf-8")
 css = (root / "styles.css").read_text(encoding="utf-8")
 js = (root / "app.js").read_text(encoding="utf-8")
+
+if len(sys.argv) > 2 and sys.argv[1] == "--standalone":
+    page = html.replace('<link rel="stylesheet" href="styles.css">', f"<style>\n{css}</style>")
+    page = page.replace('<script src="app.js"></script>', f"<script>\n{js}</script>")
+    dest = pathlib.Path(sys.argv[2])
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(page, encoding="utf-8")
+    print(dest)
+    sys.exit(0)
 
 head = re.search(r"<head>(.*?)</head>", html, re.S).group(1)
 body = re.search(r"<body[^>]*>(.*?)</body>", html, re.S).group(1)
