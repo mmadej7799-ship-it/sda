@@ -88,6 +88,7 @@
       <details class="card" data-list="skills">
         <summary><span>Umiejętności</span><span class="count"></span></summary>
         <div class="card-body">
+          <label class="check"><input type="checkbox" id="f-skillBars" name="skillBars"> Pokazuj poziom (słupki)</label>
           <div class="list"></div>
           <button type="button" class="btn btn-add" data-add="skills">+ Dodaj umiejętność</button>
         </div>
@@ -269,7 +270,7 @@
     <div class="item item-compact">
       <div class="grid grid-compact">
         <label>Umiejętność<input data-field="name"></label>
-        <label>Poziom: <output class="level-out">3</output>/5<input data-field="level" type="range" min="1" max="5" value="3"></label>
+        <label class="level-field">Poziom: <output class="level-out">3</output>/5<input data-field="level" type="range" min="1" max="5" value="3"></label>
       </div>
       <button type="button" class="icon-btn danger" data-remove aria-label="Usuń">✕</button>
     </div>

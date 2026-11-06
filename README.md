@@ -22,7 +22,12 @@ Otwórz `index.html` w przeglądarce (albo uruchom `python3 -m http.server` i we
   - układ polskiego listu: data w prawym górnym rogu, adresat, „Dotyczy:”, zwrot grzecznościowy, podpis, opcjonalna klauzula RODO
   - **Wstaw szkic z CV** — gotowy tekst zbudowany z doświadczenia i umiejętności, z wyborem tonu i formy gramatycznej (żeńska / męska / neutralna)
   - **Napisz z AI** (tylko w wersji na claude.ai) — Claude pisze list na podstawie CV i ogłoszenia, bez dopisywania faktów spoza CV
+- Umiejętności ze słupkami poziomu albo bez (przełącznik „Pokazuj poziom”) — wtedy jako etykiety
 - Tryb jasny i ciemny interfejsu
+
+## Licznik (GoatCounter)
+
+W `app.js` ustaw `GOATCOUNTER = 'nazwa'` (nazwa konta z `nazwa.goatcounter.com`). Liczone są wejścia na stronę oraz kliknięcia „Pobierz PDF” (zdarzenia `pdf-cv` i `pdf-list`). Bez ciasteczek; dane z formularza nigdy nie są wysyłane. Pusta nazwa = licznik wyłączony.
 - Przy pierwszym uruchomieniu formularz jest wypełniony przykładem; „Zacznij od zera” go czyści
 
 ## Publikacja w internecie (GitHub Pages)

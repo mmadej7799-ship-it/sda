@@ -244,6 +244,7 @@ textarea { resize: vertical; line-height: 1.4; }
 input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand); outline-offset: -1px; background: var(--surface); }
 input[type=range] { width: 100%; height: var(--tap); accent-color: var(--brand); }
 .level-out { color: var(--fg); font-weight: 700; }
+#editor.no-skill-bars .level-field { display: none; }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-compact { flex: 1; min-width: 0; }

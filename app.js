@@ -9,6 +9,9 @@
   ];
   const TEMPLATES = ['modern', 'classic', 'minimal'];
   const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+  // GoatCounter site code (the "NAME" in NAME.goatcounter.com). Empty = no counting.
+  // Only page views and PDF clicks are sent, never anything typed into the form.
+  const GOATCOUNTER = '';
   const DEFAULT_CONSENT =
     'Wyrażam zgodę na przetwarzanie moich danych osobowych dla potrzeb niezbędnych ' +
     'do realizacji procesu rekrutacji zgodnie z Rozporządzeniem Parlamentu Europejskiego ' +
@@ -31,6 +34,7 @@
     fullName: '', title: '', email: '', phone: '', location: '', website: '',
     photo: '', summary: '', interests: '',
     consentEnabled: true, consent: DEFAULT_CONSENT,
+    skillBars: true,
     experience: [], education: [], skills: [], languages: [],
     template: 'modern', accent: '#2563eb',
     letter: emptyLetter(),
@@ -128,6 +132,7 @@
     if (TEMPLATES.includes(data.template)) out.template = data.template;
     if (typeof data.accent === 'string' && /^#[0-9a-f]{6}$/i.test(data.accent)) out.accent = data.accent;
     out.consentEnabled = data.consentEnabled !== false;
+    out.skillBars = data.skillBars !== false;
     const letter = data.letter && typeof data.letter === 'object' ? data.letter : {};
     out.letter = emptyLetter();
     LETTER_FIELDS.forEach((f) => { if (typeof letter[f] === 'string') out.letter[f] = letter[f]; });
@@ -227,6 +232,8 @@
   function fillForm() {
     SIMPLE_FIELDS.forEach((name) => { form.elements[name].value = state[name]; });
     form.elements.consentEnabled.checked = state.consentEnabled;
+    form.elements.skillBars.checked = state.skillBars;
+    form.classList.toggle('no-skill-bars', !state.skillBars);
     LISTS.forEach((list) => {
       $(`[data-list="${list}"] .list`).innerHTML = '';
       state[list].forEach((item) => addItem(list, item));
@@ -261,6 +268,8 @@
   function readForm() {
     SIMPLE_FIELDS.forEach((name) => { state[name] = form.elements[name].value; });
     state.consentEnabled = form.elements.consentEnabled.checked;
+    state.skillBars = form.elements.skillBars.checked;
+    form.classList.toggle('no-skill-bars', !state.skillBars);
     LISTS.forEach((list) => {
       state[list] = $$(`[data-list="${list}"] .item`).map((item) => {
         const obj = {};
@@ -341,7 +350,12 @@
   }
 
   function skillsHtml() {
-    return filled(state.skills, ['name']).map((s) => {
+    const skills = filled(state.skills, ['name']);
+    if (!state.skillBars) {
+      return skills.length
+        ? `<div class="tags">${skills.map((s) => `<span class="tag">${esc(s.name.trim())}</span>`).join('')}</div>` : '';
+    }
+    return skills.map((s) => {
       const level = Math.min(5, Math.max(1, Number(s.level) || 3));
       return `
         <div class="skill">
@@ -559,6 +573,17 @@
     : Promise.resolve(null);
   const inSandbox = !!window.claude?.use;
 
+  // Cookie-free counting through GoatCounter's image endpoint (no third-party script).
+  function track(path, title, isEvent = false) {
+    if (!GOATCOUNTER || inSandbox || location.protocol === 'file:') return;
+    const params = new URLSearchParams({ p: path, t: title, rnd: String(Math.random()).slice(2, 10) });
+    if (isEvent) params.set('e', 'true');
+    else if (document.referrer) params.set('r', document.referrer);
+    try {
+      new Image().src = `https://${GOATCOUNTER}.goatcounter.com/count?${params}`;
+    } catch (_) { /* counting must never break the app */ }
+  }
+
   const fileBase = (prefix = 'cv') => {
     const slug = state.fullName.trim().toLowerCase()
       .replace(/[^a-z0-9ąćęłńóśźż]+/gi, '-').replace(/^-+|-+$/g, '');
@@ -607,6 +632,7 @@
       toast(isLetter ? 'Najpierw napisz treść listu.' : 'Najpierw uzupełnij CV.');
       return;
     }
+    track(isLetter ? 'pdf-list' : 'pdf-cv', isLetter ? 'Pobierz PDF: list motywacyjny' : 'Pobierz PDF: CV', true);
     // Standalone: the browser's print dialog gives a crisp PDF with selectable text.
     if (!inSandbox) {
       window.print();
@@ -817,7 +843,8 @@
     filled(state.education, ['school', 'degree']).forEach((e) => {
       lines.push(`Wykształcenie: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${[e.start, e.end].filter(Boolean).join(' – ')})`);
     });
-    const skills = filled(state.skills, ['name']).map((s) => `${s.name.trim()} (${s.level}/5)`);
+    const skills = filled(state.skills, ['name'])
+      .map((s) => (state.skillBars ? `${s.name.trim()} (${s.level}/5)` : s.name.trim()));
     if (skills.length) lines.push(`Umiejętności: ${skills.join(', ')}`);
     const langs = filled(state.languages, ['name']).map((l) => `${l.name.trim()} (${l.level})`);
     if (langs.length) lines.push(`Języki: ${langs.join(', ')}`);
@@ -997,4 +1024,6 @@
   state = load() || sampleState();
   fillForm();
   render();
+  // Fixed title: document.title contains the user's name, which must not leave the device.
+  track(location.pathname, 'Kreator CV');
 })();
