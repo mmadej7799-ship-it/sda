@@ -12,7 +12,7 @@ js = (root / "app.js").read_text(encoding="utf-8")
 
 head = re.search(r"<head>(.*?)</head>", html, re.S).group(1)
 body = re.search(r"<body[^>]*>(.*?)</body>", html, re.S).group(1)
-view = re.search(r'<body[^>]*data-view="(\w+)"', html).group(1)
+body_data = re.findall(r'data-([\w-]+)="([^"]*)"', re.search(r"<body([^>]*)>", html).group(1))
 
 # Keep the title, the claude: meta tag and the Google Fonts link; the host
 # supplies charset/viewport, and the local stylesheet is inlined below.
@@ -23,8 +23,10 @@ body = body.replace('<script src="app.js"></script>', f"<script>\n{js}</script>"
 out = (
     "\n".join(keep)
     + f"\n<style>\n{css}</style>\n"
-    # The host owns <body>, so the initial view attribute is set from script.
-    + f'<script>document.body.dataset.view = "{view}";</script>\n'
+    # The host owns <body>, so its data-* attributes are set from script.
+    + "<script>"
+    + "".join(f'document.body.setAttribute("data-{k}", "{v}");' for k, v in body_data)
+    + "</script>\n"
     + body.strip()
     + "\n"
 )

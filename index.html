@@ -8,10 +8,15 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body data-view="edit">
+<body data-view="edit" data-doc="cv">
   <header class="topbar">
     <div class="topbar-inner">
       <h1 class="brand">Kreator&nbsp;CV</h1>
+      <fieldset class="segmented docswitch" id="doc-picker">
+        <legend>Dokument</legend>
+        <label><input type="radio" name="doc" value="cv" checked><span>CV</span></label>
+        <label><input type="radio" name="doc" value="letter"><span><span class="long">List motywacyjny</span><span class="short">List</span></span></label>
+      </fieldset>
       <div class="actions">
         <button type="button" id="btn-more" class="btn btn-ghost only-narrow" aria-expanded="false" aria-controls="menu">Plik ▾</button>
         <div id="menu" class="menu">
@@ -27,12 +32,12 @@
   </header>
 
   <div id="sample-banner" class="banner" hidden>
-    <p>Wypełniono przykładowymi danymi. Zastąp je swoimi albo zacznij od pustego CV.</p>
+    <p>CV i list wypełniono przykładowymi danymi. Zastąp je swoimi albo zacznij od zera.</p>
     <button type="button" id="btn-start-empty" class="btn btn-small">Zacznij od zera</button>
   </div>
 
   <main class="layout">
-    <form id="editor" class="pane pane-edit" autocomplete="off" novalidate>
+    <form id="editor" class="pane pane-edit" data-doc="cv" autocomplete="off" novalidate>
       <details class="card" open>
         <summary><span>Dane osobowe</span></summary>
         <div class="card-body">
@@ -112,7 +117,7 @@
       </details>
     </form>
 
-    <section class="pane pane-preview" aria-label="Podgląd CV">
+    <section class="pane pane-preview" data-doc="cv" aria-label="Podgląd CV">
       <div class="look">
         <fieldset class="segmented" id="template-picker">
           <legend>Szablon</legend>
@@ -131,8 +136,75 @@
           <label class="custom" title="Własny kolor"><input type="color" id="accent-custom" value="#2563eb" aria-label="Własny kolor"></label>
         </fieldset>
       </div>
-      <div class="paper-wrap" id="paper-wrap">
-        <article id="cv" class="cv"></article>
+      <div class="paper-wrap">
+        <article id="cv" class="sheet cv" lang="pl"></article>
+      </div>
+    </section>
+
+    <form id="letter-editor" class="pane pane-edit" data-doc="letter" autocomplete="off" novalidate>
+      <p class="hint">Imię, dane kontaktowe, kolor i szablon list bierze z Twojego CV.</p>
+
+      <details class="card" open>
+        <summary><span>Oferta pracy</span></summary>
+        <div class="card-body">
+          <div class="grid">
+            <label>Stanowisko<input id="l-position" name="position" placeholder="np. Senior Frontend Developer"></label>
+            <label>Firma<input id="l-company" name="company" placeholder="np. Nowa Firma S.A."></label>
+          </div>
+          <label>Treść ogłoszenia (opcjonalnie, pomaga dopasować list)
+            <textarea id="l-jobAd" name="jobAd" rows="5" placeholder="Wklej tutaj ogłoszenie o pracę"></textarea>
+          </label>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary><span>Adresat i data</span></summary>
+        <div class="card-body">
+          <label>Osoba lub dział<input id="l-recipient" name="recipient" placeholder="np. Dział HR"></label>
+          <label>Adres firmy<textarea id="l-address" name="address" rows="2" placeholder="ul. Przykładowa 1&#10;00-001 Warszawa"></textarea></label>
+          <label>Miejscowość i data (puste = dzisiejsza)<input id="l-date" name="date"></label>
+        </div>
+      </details>
+
+      <details class="card" open>
+        <summary><span>Treść listu</span></summary>
+        <div class="card-body">
+          <div class="write-tools">
+            <div class="grid">
+              <label>Ton
+                <select id="l-tone" name="tone">
+                  <option value="formal">Formalny</option>
+                  <option value="warm">Ciepły, osobisty</option>
+                  <option value="concise">Zwięzły</option>
+                </select>
+              </label>
+              <label>Forma gramatyczna
+                <select id="l-gender" name="gender">
+                  <option value="neutral">Neutralna</option>
+                  <option value="f">Żeńska („pracowałam”)</option>
+                  <option value="m">Męska („pracowałem”)</option>
+                </select>
+              </label>
+            </div>
+            <label class="ai-only" hidden>Na co położyć nacisk? (opcjonalnie)<input id="l-extra" name="extra" placeholder="np. praca z klientem, zarządzanie zespołem"></label>
+            <div class="write-actions">
+              <button type="button" id="btn-ai" class="btn btn-primary ai-only" hidden>Napisz z AI</button>
+              <button type="button" id="btn-ai-stop" class="btn" hidden>Zatrzymaj</button>
+              <button type="button" id="btn-draft" class="btn">Wstaw szkic z CV</button>
+            </div>
+            <p class="ai-status" id="ai-status" role="status" hidden></p>
+          </div>
+          <label>Zwrot grzecznościowy<input id="l-greeting" name="greeting"></label>
+          <label>Treść (akapity oddziel pustą linią)<textarea id="l-body" name="body" rows="14"></textarea></label>
+          <label>Zakończenie<input id="l-closing" name="closing"></label>
+          <label class="check"><input type="checkbox" id="l-consentEnabled" name="consentEnabled"> Dołącz klauzulę RODO (treść z CV)</label>
+        </div>
+      </details>
+    </form>
+
+    <section class="pane pane-preview" data-doc="letter" aria-label="Podgląd listu motywacyjnego">
+      <div class="paper-wrap">
+        <article id="letter" class="sheet letter" lang="pl"></article>
       </div>
     </section>
   </main>

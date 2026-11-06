@@ -14,13 +14,46 @@
     'do realizacji procesu rekrutacji zgodnie z Rozporządzeniem Parlamentu Europejskiego ' +
     'i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO).';
 
+  const LETTER_FIELDS = [
+    'position', 'company', 'jobAd', 'recipient', 'address', 'date',
+    'tone', 'gender', 'extra', 'greeting', 'body', 'closing',
+  ];
+  const LETTER_CHOICES = { tone: ['formal', 'warm', 'concise'], gender: ['neutral', 'f', 'm'] };
+
+  const emptyLetter = () => ({
+    position: '', company: '', jobAd: '', recipient: '', address: '', date: '',
+    tone: 'formal', gender: 'neutral', extra: '',
+    greeting: 'Szanowni Państwo,', body: '', closing: 'Z poważaniem',
+    consentEnabled: true,
+  });
+
   const emptyState = () => ({
     fullName: '', title: '', email: '', phone: '', location: '', website: '',
     photo: '', summary: '', interests: '',
     consentEnabled: true, consent: DEFAULT_CONSENT,
     experience: [], education: [], skills: [], languages: [],
     template: 'modern', accent: '#2563eb',
+    letter: emptyLetter(),
+    doc: 'cv',
     isSample: false,
+  });
+
+  const sampleLetter = () => ({
+    ...emptyLetter(),
+    position: 'Senior Frontend Developer',
+    company: 'Nowa Firma S.A.',
+    recipient: 'Dział HR',
+    address: 'ul. Prosta 20\n00-850 Warszawa',
+    gender: 'f',
+    body:
+      'Z dużym zainteresowaniem przeczytałam ogłoszenie o pracy na stanowisku Senior Frontend Developer ' +
+      'w Nowej Firmie S.A. i chciałabym zgłosić swoją kandydaturę. Od pięciu lat tworzę aplikacje webowe ' +
+      'w React i TypeScript, a Państwa produkt od dawna śledzę jako użytkowniczka.\n\n' +
+      'Obecnie w TechSoft prowadzę zespół czterech programistów. Przeprowadziłam migrację dużej aplikacji ' +
+      'do React 18 i TypeScript oraz skróciłam czas ładowania strony o 40%. Dbam o dostępność i wydajność ' +
+      'interfejsów, a wcześniej w WebStudio współtworzyłam bibliotekę komponentów UI używaną w kilkunastu projektach.\n\n' +
+      'Chętnie opowiem więcej o swoim doświadczeniu podczas rozmowy. Dziękuję za poświęcony czas ' +
+      'i rozważenie mojej kandydatury.',
   });
 
   const sampleState = () => ({
@@ -62,14 +95,16 @@
       { name: 'Niemiecki', level: 'A2' },
     ],
     interests: 'fotografia, wspinaczka, gry planszowe',
+    letter: sampleLetter(),
   });
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const form = $('#editor');
+  const letterForm = $('#letter-editor');
   const cv = $('#cv');
-  const paperWrap = $('#paper-wrap');
+  const letterSheet = $('#letter');
   const accentCustom = $('#accent-custom');
 
   let state;
@@ -93,6 +128,14 @@
     if (TEMPLATES.includes(data.template)) out.template = data.template;
     if (typeof data.accent === 'string' && /^#[0-9a-f]{6}$/i.test(data.accent)) out.accent = data.accent;
     out.consentEnabled = data.consentEnabled !== false;
+    const letter = data.letter && typeof data.letter === 'object' ? data.letter : {};
+    out.letter = emptyLetter();
+    LETTER_FIELDS.forEach((f) => { if (typeof letter[f] === 'string') out.letter[f] = letter[f]; });
+    Object.entries(LETTER_CHOICES).forEach(([f, allowed]) => {
+      if (!allowed.includes(out.letter[f])) out.letter[f] = allowed[0];
+    });
+    out.letter.consentEnabled = letter.consentEnabled !== false;
+    out.doc = data.doc === 'letter' ? 'letter' : 'cv';
     out.isSample = data.isSample === true;
     return out;
   }
@@ -189,6 +232,19 @@
       state[list].forEach((item) => addItem(list, item));
     });
     syncLookControls();
+    fillLetter();
+  }
+
+  function fillLetter() {
+    LETTER_FIELDS.forEach((name) => { letterForm.elements[name].value = state.letter[name]; });
+    letterForm.elements.consentEnabled.checked = state.letter.consentEnabled;
+    $$('input[name="doc"]').forEach((r) => { r.checked = r.value === state.doc; });
+    document.body.dataset.doc = state.doc;
+  }
+
+  function readLetter() {
+    LETTER_FIELDS.forEach((name) => { state.letter[name] = letterForm.elements[name].value; });
+    state.letter.consentEnabled = letterForm.elements.consentEnabled.checked;
   }
 
   function syncLookControls() {
@@ -376,8 +432,54 @@
       && LISTS.every((l) => !state[l].some(hasText));
   }
 
+  const letterEmpty = () => !state.letter.body.trim();
+  const docEmpty = () => (state.doc === 'letter' ? letterEmpty() : isEmpty());
+
+  function todayLine() {
+    const date = new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `${state.location.trim() ? `${state.location.trim()}, ` : ''}${date} r.`;
+  }
+
+  function renderLetter() {
+    const L = state.letter;
+    letterSheet.className = `sheet letter tpl-${state.template}`;
+    letterSheet.style.setProperty('--accent', state.accent);
+    letterForm.elements.date.placeholder = todayLine();
+    if (letterEmpty()) {
+      letterSheet.innerHTML = '<p class="empty">Napisz treść listu albo wstaw szkic z CV, a tutaj pojawi się podgląd.</p>';
+      return;
+    }
+    const contact = [state.email, state.phone, state.location, state.website]
+      .map((s) => s.trim()).filter(Boolean).map(esc).join('<br>');
+    const to = [
+      L.recipient.trim() && `<strong>${esc(L.recipient.trim())}</strong>`,
+      L.company.trim() && `<strong>${esc(L.company.trim())}</strong>`,
+      L.address.trim() && esc(L.address.trim()),
+    ].filter(Boolean).join('');
+    const paragraphs = L.body.trim().split(/\n\s*\n/)
+      .map((p) => `<p>${esc(p.trim()).replace(/\n/g, '<br>')}</p>`).join('');
+    const consent = L.consentEnabled && state.consent.trim() ? `<p class="consent">${esc(state.consent)}</p>` : '';
+    letterSheet.innerHTML = `
+      <header class="lh">
+        <div>
+          <div class="lh-name">${esc(state.fullName)}</div>
+          ${state.title.trim() ? `<div class="lh-role">${esc(state.title)}</div>` : ''}
+        </div>
+        <div class="lh-contact">${contact}</div>
+      </header>
+      <p class="date">${esc(L.date.trim() || todayLine())}</p>
+      ${to ? `<div class="to">${to}</div>` : ''}
+      ${L.position.trim() ? `<p class="subject">Dotyczy: rekrutacji na stanowisko ${esc(L.position.trim())}</p>` : ''}
+      ${L.greeting.trim() ? `<p class="greeting">${esc(L.greeting.trim())}</p>` : ''}
+      <div class="body">${paragraphs}</div>
+      ${L.closing.trim() ? `<p class="closing">${esc(L.closing.trim())}</p>` : ''}
+      <p class="signature">${esc(state.fullName)}</p>
+      ${consent}`;
+  }
+
   function render() {
-    cv.className = `cv tpl-${state.template}`;
+    renderLetter();
+    cv.className = `sheet cv tpl-${state.template}`;
     cv.style.setProperty('--accent', state.accent);
     cv.innerHTML = isEmpty()
       ? '<p class="empty">Zacznij wypełniać formularz, a tutaj pojawi się Twoje CV.</p>'
@@ -396,13 +498,24 @@
     fitPreview();
   }
 
-  // Scales the fixed-width A4 sheet down to the width available on screen.
+  // Scales the fixed-width A4 sheets down to the width available on screen.
   function fitPreview() {
-    const available = paperWrap.clientWidth;
-    if (!available) return;
-    const scale = Math.min(1, available / cv.offsetWidth);
-    cv.style.transform = scale < 1 ? `scale(${scale})` : '';
-    paperWrap.style.height = `${Math.ceil(cv.offsetHeight * scale)}px`;
+    $$('.paper-wrap').forEach((wrap) => {
+      const sheet = $('.sheet', wrap);
+      const available = wrap.clientWidth;
+      if (!available) return;
+      const scale = Math.min(1, available / sheet.offsetWidth);
+      sheet.style.transform = scale < 1 ? `scale(${scale})` : '';
+      wrap.style.height = `${Math.ceil(sheet.offsetHeight * scale)}px`;
+    });
+  }
+
+  function setDoc(doc) {
+    state.doc = doc;
+    document.body.dataset.doc = doc;
+    save();
+    window.scrollTo(0, 0);
+    fitPreview();
   }
 
   // ---------- View switching (phones) ----------
@@ -446,10 +559,10 @@
     : Promise.resolve(null);
   const inSandbox = !!window.claude?.use;
 
-  const fileBase = () => {
+  const fileBase = (prefix = 'cv') => {
     const slug = state.fullName.trim().toLowerCase()
       .replace(/[^a-z0-9ąćęłńóśźż]+/gi, '-').replace(/^-+|-+$/g, '');
-    return slug ? `cv-${slug}` : 'cv';
+    return slug ? `${prefix}-${slug}` : prefix;
   };
 
   async function saveFile(filename, data) {
@@ -489,8 +602,9 @@
   }
 
   async function exportPdf() {
-    if (isEmpty()) {
-      toast('Najpierw uzupełnij CV.');
+    const isLetter = state.doc === 'letter';
+    if (docEmpty()) {
+      toast(isLetter ? 'Najpierw napisz treść listu.' : 'Najpierw uzupełnij CV.');
       return;
     }
     // Standalone: the browser's print dialog gives a crisp PDF with selectable text.
@@ -508,7 +622,7 @@
       // phone's screen size.
       const holder = document.createElement('div');
       holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;';
-      const copy = cv.cloneNode(true);
+      const copy = (isLetter ? letterSheet : cv).cloneNode(true);
       copy.style.transform = '';
       copy.style.boxShadow = 'none';
       // A hair under A4 height, so rounding never spills a blank second page.
@@ -521,9 +635,9 @@
           image: { type: 'jpeg', quality: 0.95 },
           html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'], avoid: ['.entry', '.skill'] },
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['.entry', '.skill', '.body p'] },
         }).from(copy).outputPdf('blob');
-        await saveFile(`${fileBase()}.pdf`, blob);
+        await saveFile(`${fileBase(isLetter ? 'list-motywacyjny' : 'cv')}.pdf`, blob);
       } finally {
         holder.remove();
       }
@@ -603,6 +717,212 @@
     commit();
   });
 
+  // ---------- Cover letter ----------
+
+  $('#doc-picker').addEventListener('change', (ev) => setDoc(ev.target.value));
+
+  letterForm.addEventListener('input', () => { readLetter(); commit(); });
+  letterForm.addEventListener('change', () => { readLetter(); commit(); });
+  letterForm.addEventListener('submit', (ev) => ev.preventDefault());
+
+  function setBody(text) {
+    letterForm.elements.body.value = text;
+    readLetter();
+    commit();
+  }
+
+  const lowerFirst = (s) => (/^\p{Lu}\p{Ll}/u.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+  // Ends a sentence without doubling the dot after names like "S.A." or "sp. z o.o.".
+  const dot = (s) => (s.endsWith('.') ? s : `${s}.`);
+  const joinPl = (items) => (items.length > 1
+    ? `${items.slice(0, -1).join(', ')} oraz ${items[items.length - 1]}` : items[0] || '');
+
+  // Builds a letter from the CV without AI. Sentences avoid gendered verb
+  // forms unless the user picked one, since Polish past tense is gendered.
+  function draftFromCv() {
+    const L = state.letter;
+    const g = (f, m, n) => (L.gender === 'f' ? f : L.gender === 'm' ? m : n);
+    const position = L.position.trim() || state.title.trim() || '[stanowisko]';
+    const company = L.company.trim() || '[nazwa firmy]';
+    const jobs = filled(state.experience, ['role', 'company']);
+    const skills = filled(state.skills, ['name']).map((s) => s.name.trim()).slice(0, 5);
+    const langs = filled(state.languages, ['name'])
+      .filter((l) => l.level !== 'ojczysty')
+      .map((l) => `${l.name.trim().toLowerCase()} (${l.level})`);
+    const concise = L.tone === 'concise';
+    const paras = [];
+
+    const target = `stanowisko ${position} w firmie ${company}`;
+    const opening = L.tone === 'warm'
+      ? g(
+        dot(`Z ogromną radością przeczytałam ofertę pracy na ${target}`),
+        dot(`Z ogromną radością przeczytałem ofertę pracy na ${target}`),
+        dot(`Z dużym zainteresowaniem zgłaszam swoją kandydaturę na ${target}`),
+      )
+      : dot(`Zwracam się z prośbą o rozpatrzenie mojej kandydatury na ${target}`);
+    paras.push(
+      `${opening} ${g('Jestem przekonana', 'Jestem przekonany', 'Uważam')}, że moje doświadczenie `
+      + 'i umiejętności pozwolą mi szybko wnieść realną wartość do Państwa zespołu.',
+    );
+
+    if (jobs.length) {
+      const [cur, ...rest] = jobs;
+      const role = cur.role.trim();
+      const at = cur.company.trim() ? ` w firmie ${cur.company.trim()}` : '';
+      const current = /obecn|teraz|nadal|present/i.test(cur.end || '');
+      let p = current
+        ? dot(`Obecnie pracuję${role ? ` na stanowisku ${role}` : ''}${at}`)
+        : dot(`Moje ostatnie stanowisko to ${role || 'praca'}${at}`);
+      const bullets = (cur.description || '').split('\n')
+        .map((l) => l.replace(/^[-•*]\s*/, '').trim().replace(/\.$/, '')).filter(Boolean).slice(0, 3);
+      if (bullets.length) p += ` Do moich zadań i osiągnięć należą m.in.: ${joinPl(bullets.map(lowerFirst))}.`;
+      if (rest.length && !concise) {
+        const earlier = rest.slice(0, 2).map((j) => [j.role.trim(), j.company.trim() && `w ${j.company.trim()}`].filter(Boolean).join(' '));
+        p += ` ${dot(`Wcześniejsze doświadczenie obejmuje pracę jako ${joinPl(earlier)}`)}`;
+      }
+      paras.push(p);
+    } else if (state.summary.trim()) {
+      paras.push(state.summary.trim());
+    }
+
+    const strengths = [];
+    if (skills.length) strengths.push(`Moje najmocniejsze strony to ${joinPl(skills)}.`);
+    if (langs.length && !concise) strengths.push(`Znam języki: ${langs.join(', ')}.`);
+    if (strengths.length) paras.push(strengths.join(' '));
+
+    paras.push(
+      'Chętnie opowiem więcej o swoim doświadczeniu podczas rozmowy. '
+      + 'Dziękuję za poświęcony czas i rozważenie mojej kandydatury.',
+    );
+    return paras.join('\n\n');
+  }
+
+  $('#btn-draft').addEventListener('click', async () => {
+    if (state.letter.body.trim() && !(await ask('Zastąpić obecną treść listu szkicem z CV?', 'Zastąp'))) return;
+    setBody(draftFromCv());
+    toast('Wstawiono szkic. Przeczytaj go i dopasuj do siebie.');
+  });
+
+  // Plain-text CV for the AI prompt.
+  function cvAsText() {
+    const lines = [];
+    const push = (label, value) => { if (value && value.trim()) lines.push(`${label}: ${value.trim()}`); };
+    push('Imię i nazwisko', state.fullName);
+    push('Obecne stanowisko', state.title);
+    push('Podsumowanie', state.summary);
+    filled(state.experience, ['role', 'company']).forEach((e) => {
+      lines.push(`Doświadczenie: ${[e.role, e.company].map((s) => s.trim()).filter(Boolean).join(', ')} (${[e.start, e.end].filter(Boolean).join(' – ')})`);
+      (e.description || '').split('\n').map((l) => l.trim()).filter(Boolean).forEach((l) => lines.push(`  - ${l}`));
+    });
+    filled(state.education, ['school', 'degree']).forEach((e) => {
+      lines.push(`Wykształcenie: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${[e.start, e.end].filter(Boolean).join(' – ')})`);
+    });
+    const skills = filled(state.skills, ['name']).map((s) => `${s.name.trim()} (${s.level}/5)`);
+    if (skills.length) lines.push(`Umiejętności: ${skills.join(', ')}`);
+    const langs = filled(state.languages, ['name']).map((l) => `${l.name.trim()} (${l.level})`);
+    if (langs.length) lines.push(`Języki: ${langs.join(', ')}`);
+    push('Zainteresowania', state.interests);
+    return lines.join('\n');
+  }
+
+  function aiPrompt() {
+    const L = state.letter;
+    const tone = { formal: 'formalny, profesjonalny', warm: 'ciepły i osobisty, ale profesjonalny', concise: 'zwięzły i rzeczowy (ok. 150 słów)' }[L.tone];
+    const gender = {
+      f: 'pisz w formie żeńskiej (np. „pracowałam”, „jestem gotowa”)',
+      m: 'pisz w formie męskiej (np. „pracowałem”, „jestem gotowy”)',
+      neutral: 'unikaj form zależnych od płci (np. zamiast „pracowałem” pisz „pracuję”, „moje doświadczenie obejmuje”)',
+    }[L.gender];
+    return [
+      'Napisz treść listu motywacyjnego po polsku.',
+      '',
+      'Zasady:',
+      '- Zwróć WYŁĄCZNIE akapity treści listu (3–4 akapity, łącznie 180–280 słów), oddzielone pustą linią.',
+      '- Bez zwrotu grzecznościowego na początku, bez zakończenia typu „Z poważaniem”, bez podpisu, bez daty, bez nagłówków i bez formatowania Markdown.',
+      `- Pierwsza osoba liczby pojedynczej; ${gender}.`,
+      `- Ton: ${tone}.`,
+      '- Opieraj się wyłącznie na faktach z CV. Nie wymyślaj doświadczenia, liczb, firm ani certyfikatów. Jeśli ogłoszenie wymaga czegoś, czego nie ma w CV, nie twierdź, że kandydat to ma.',
+      '- Jeśli podano ogłoszenie, nawiąż konkretnie do 2–3 najważniejszych wymagań i pokaż, jak doświadczenie kandydata im odpowiada.',
+      '- Unikaj pustych frazesów („jestem osobą kreatywną i komunikatywną”); używaj konkretów z CV.',
+      '',
+      `Stanowisko: ${L.position.trim() || state.title.trim() || '(nie podano)'}`,
+      `Firma: ${L.company.trim() || '(nie podano)'}`,
+      L.extra.trim() ? `Na co położyć nacisk: ${L.extra.trim()}` : '',
+      '',
+      'Ogłoszenie:',
+      `"""${L.jobAd.trim() || '(nie podano)'}"""`,
+      '',
+      'CV kandydata:',
+      `"""${cvAsText() || '(puste)'}"""`,
+    ].filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n');
+  }
+
+  const samplePromise = window.claude?.use
+    ? window.claude.use('sample').catch(() => null)
+    : Promise.resolve(null);
+  let sampleFn = null;
+  let aiAbort = null;
+  const aiStatus = $('#ai-status');
+  const setAiStatus = (text) => { aiStatus.textContent = text; aiStatus.hidden = !text; };
+  const hideAi = () => { $$('.ai-only').forEach((el) => { el.hidden = true; }); };
+
+  samplePromise.then((fn) => {
+    sampleFn = fn;
+    if (fn) $$('.ai-only').forEach((el) => { el.hidden = false; });
+  });
+
+  $('#btn-ai').addEventListener('click', async () => {
+    if (!sampleFn) return;
+    if (isEmpty()) {
+      toast('Najpierw uzupełnij CV — list powstaje na jego podstawie.');
+      return;
+    }
+    if (state.letter.body.trim() && !(await ask('Zastąpić obecną treść listu nową wersją od AI?', 'Zastąp'))) return;
+    const previous = state.letter.body;
+    const body = letterForm.elements.body;
+    const aiBtn = $('#btn-ai');
+    const stopBtn = $('#btn-ai-stop');
+    aiAbort = new AbortController();
+    aiBtn.disabled = true;
+    stopBtn.hidden = false;
+    body.readOnly = true;
+    setAiStatus('Claude pisze list… To może potrwać do minuty.');
+    let got = false;
+    try {
+      const { text } = await sampleFn(aiPrompt(), {
+        signal: aiAbort.signal,
+        cache: false,
+        onText: ({ text: t }) => {
+          got = true;
+          setAiStatus('Claude pisze list…');
+          body.value = t;
+          state.letter.body = t;
+          renderLetter();
+          fitPreview();
+        },
+      });
+      setBody(text.trim());
+      setAiStatus('Gotowe. Przeczytaj list i popraw to, co nie brzmi jak Ty.');
+    } catch (err) {
+      const kept = (err?.text || '').trim();
+      setBody(kept || (got ? body.value : previous));
+      const messages = {
+        cancelled: kept ? 'Zatrzymano. Zostawiono napisaną część.' : 'Zatrzymano.',
+        not_granted: 'Bez zgody na użycie Claude możesz napisać list sam albo wstawić szkic z CV.',
+        rate_limited: 'Za dużo zapytań naraz. Spróbuj ponownie za chwilę.',
+        prompt_too_large: 'Ogłoszenie jest za długie. Skróć je do najważniejszych wymagań.',
+      };
+      setAiStatus(messages[err?.code] || 'Nie udało się napisać listu. Spróbuj ponownie albo wstaw szkic z CV.');
+      if (['not_granted', 'sampling_disabled', 'capability_disabled', 'capability_removed', 'not_declared'].includes(err?.code)) hideAi();
+    } finally {
+      aiBtn.disabled = false;
+      stopBtn.hidden = true;
+      body.readOnly = false;
+      aiAbort = null;
+    }
+  });
+  $('#btn-ai-stop').addEventListener('click', () => aiAbort?.abort());
+
   const menu = $('#menu');
   const moreBtn = $('#btn-more');
   const closeMenu = () => { menu.classList.remove('open'); moreBtn.setAttribute('aria-expanded', 'false'); };
@@ -615,20 +935,22 @@
   menu.addEventListener('click', (ev) => { if (ev.target.closest('button')) closeMenu(); });
 
   $('#btn-sample').addEventListener('click', async () => {
-    if (!isEmpty() && !state.isSample && !(await ask('Zastąpić Twoje dane przykładowym CV?', 'Zastąp'))) return;
-    state = { ...sampleState(), template: state.template, accent: state.accent };
+    if ((!isEmpty() || !letterEmpty()) && !state.isSample
+      && !(await ask('Zastąpić Twoje CV i list przykładowymi danymi?', 'Zastąp'))) return;
+    state = { ...sampleState(), template: state.template, accent: state.accent, doc: state.doc };
     fillForm();
     save();
     render();
   });
 
   const clearAll = async () => {
-    if (!isEmpty() && !state.isSample && !(await ask('Usunąć wszystkie dane z CV? Tej operacji nie można cofnąć.', 'Wyczyść'))) return;
+    if ((!isEmpty() || !letterEmpty()) && !state.isSample
+      && !(await ask('Usunąć wszystkie dane z CV i listu motywacyjnego? Tej operacji nie można cofnąć.', 'Wyczyść'))) return;
     state = { ...emptyState(), template: state.template, accent: state.accent };
     fillForm();
     save();
     render();
-    $('details.card').open = true;
+    $('#editor details.card').open = true;
     setView('edit');
   };
   $('#btn-reset').addEventListener('click', clearAll);
@@ -650,9 +972,9 @@
       fillForm();
       save();
       render();
-      toast('Wczytano CV z pliku.');
+      toast('Wczytano dane z pliku.');
     } catch (_) {
-      toast('To nie jest plik CV zapisany w tej aplikacji (JSON).');
+      toast('To nie jest plik zapisany w tej aplikacji (JSON).');
     }
   });
 
@@ -660,10 +982,14 @@
 
   $$('[data-view-btn]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.viewBtn)));
 
-  if ('ResizeObserver' in window) new ResizeObserver(fitPreview).observe(paperWrap);
-  else window.addEventListener('resize', fitPreview);
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(fitPreview);
+    $$('.paper-wrap').forEach((w) => ro.observe(w));
+  } else {
+    window.addEventListener('resize', fitPreview);
+  }
   document.fonts?.ready.then(fitPreview);
-  window.addEventListener('beforeprint', () => { cv.style.transform = ''; });
+  window.addEventListener('beforeprint', () => { $$('.sheet').forEach((s) => { s.style.transform = ''; }); });
   window.addEventListener('afterprint', fitPreview);
 
   // ---------- Init ----------
