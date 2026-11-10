@@ -12,7 +12,7 @@
   // GoatCounter site code (the "NAME" in NAME.goatcounter.com). Empty = no counting.
   // Only page views and PDF clicks are sent, never anything typed into the form.
   const GOATCOUNTER = '';
-  const { LANGS, UI, DOC, DRAFT, SAMPLES, CURRENT_JOB, detectLang } = window.CVI18N;
+  const { LANGS, UI, DOC, DRAFT, SAMPLES, CURRENT_JOB, detectLang, certSection } = window.CVI18N;
 
   const LETTER_FIELDS = [
     'position', 'company', 'jobAd', 'recipient', 'address', 'date',
@@ -215,12 +215,19 @@
 
   // ---------- Form <-> state ----------
 
+  let radioGroup = 0;
   function addItem(list, data = {}) {
     const tpl = $(`#tpl-${list}`);
     const node = tpl.content.firstElementChild.cloneNode(true);
+    radioGroup += 1;
     $$('[data-field]', node).forEach((el) => {
       const value = data[el.dataset.field];
-      if (value !== undefined) el.value = value;
+      if (el.type === 'radio') {
+        el.name = `${el.dataset.field}-${radioGroup}`;
+        if (value !== undefined) el.checked = el.value === value;
+      } else if (value !== undefined) {
+        el.value = value;
+      }
     });
     $(`[data-list="${list}"] .list`).appendChild(node);
     refreshItem(node);
@@ -285,7 +292,9 @@
     LISTS.forEach((list) => {
       state[list] = $$(`[data-list="${list}"] .item`).map((item) => {
         const obj = {};
-        $$('[data-field]', item).forEach((el) => { obj[el.dataset.field] = el.value; });
+        $$('[data-field]', item).forEach((el) => {
+          if (el.type !== 'radio' || el.checked) obj[el.dataset.field] = el.value;
+        });
         return obj;
       });
     });
@@ -348,13 +357,17 @@
     }).join('');
   }
 
+  const certHeading = () => certSection(filled(state.certificates, ['name', 'issuer']), DOC[state.docLang]).heading;
+
   function certificatesHtml() {
-    return filled(state.certificates, ['name', 'issuer']).map((c) => `
+    const certs = filled(state.certificates, ['name', 'issuer']);
+    const { label } = certSection(certs, DOC[state.docLang]);
+    return certs.map((c) => `
       <div class="entry">
         <div class="entry-head">
           <div>
             <div class="entry-title">${esc(c.name)}</div>
-            <div class="entry-sub">${esc(c.issuer)}</div>
+            <div class="entry-sub">${esc([label(c), (c.issuer || '').trim()].filter(Boolean).join(' · '))}</div>
           </div>
           <div class="entry-date">${esc((c.date || '').trim())}</div>
         </div>
@@ -420,7 +433,7 @@
         ${section(d('profile'), summaryHtml())}
         ${section(d('experience'), experienceHtml())}
         ${section(d('education'), educationHtml())}
-        ${section(d('certificates'), certificatesHtml())}
+        ${section(certHeading(), certificatesHtml())}
         ${consentHtml()}
       </div>`,
 
@@ -437,7 +450,7 @@
         ${section(d('profile'), summaryHtml())}
         ${section(d('experience'), experienceHtml())}
         ${section(d('education'), educationHtml())}
-        ${section(d('certificates'), certificatesHtml())}
+        ${section(certHeading(), certificatesHtml())}
         ${skills && side.trim() ? `<div class="two-col"><div>${skills}</div><div>${side}</div></div>` : skills + side}
         ${consentHtml()}`;
     },
@@ -460,7 +473,7 @@
         ${row(d('profile'), summaryHtml())}
         ${row(d('experience'), experienceHtml())}
         ${row(d('education'), educationHtml())}
-        ${row(d('certificates'), certificatesHtml())}
+        ${row(certHeading(), certificatesHtml())}
         ${row(d('skills'), skillsHtml())}
         ${row(d('languages'), languagesHtml())}
         ${row(d('interests'), interestsHtml())}
@@ -482,7 +495,7 @@
           ${section(d('profile'), summaryHtml())}
           ${section(d('experience'), experienceHtml())}
           ${section(d('education'), educationHtml())}
-          ${section(d('certificates'), certificatesHtml())}
+          ${section(certHeading(), certificatesHtml())}
         </div>
         <aside class="col-side">
           ${section(d('skills'), skillsHtml())}
@@ -799,7 +812,7 @@
       $('input, textarea', node)?.focus();
     } else if (btn.hasAttribute('data-remove')) {
       const item = btn.closest('.item');
-      const typed = $$('input:not([type=range]), textarea', item).some((el) => el.value.trim());
+      const typed = $$('input:not([type=range]):not([type=radio]), textarea', item).some((el) => el.value.trim());
       if (typed && !(await ask(t('confirmRemoveItem'), t('remove')))) return;
       item.remove();
     } else if (btn.dataset.move) {
@@ -914,7 +927,7 @@
       lines.push(`Education: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${span(e)})`);
     });
     filled(state.certificates, ['name', 'issuer']).forEach((c) => {
-      lines.push(`Certificate/course: ${[c.name, c.issuer, c.date].map((s) => (s || '').trim()).filter(Boolean).join(', ')}`);
+      lines.push(`${c.type === 'course' ? 'Course' : 'Certificate'}: ${[c.name, c.issuer, c.date].map((s) => (s || '').trim()).filter(Boolean).join(', ')}`);
     });
     const skills = filled(state.skills, ['name'])
       .map((s) => (state.skillBars ? `${s.name.trim()} (${s.level}/5)` : s.name.trim()));

@@ -264,10 +264,12 @@ window.CVDocx = (() => {
 
     const certs = filled(state.certificates, ['name', 'issuer']);
     if (certs.length) {
-      out.push(heading(doc.certificates));
+      const { heading: title, label } = window.CVI18N.certSection(certs, doc);
+      out.push(heading(title));
       certs.forEach((c) => {
         out.push(entryHead(c.name.trim() || c.issuer.trim(), (c.date || '').trim()));
-        if (c.name.trim() && c.issuer.trim()) out.push(para(run(c.issuer.trim(), { color: '475569' }), { after: 120 }));
+        const sub = [label(c), c.name.trim() ? c.issuer.trim() : ''].filter(Boolean).join(' · ');
+        if (sub) out.push(para(run(sub, { color: '475569' }), { after: 120 }));
       });
     }
 

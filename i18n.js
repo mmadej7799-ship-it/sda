@@ -114,6 +114,9 @@ window.CVI18N = (() => {
       newJob: 'Nowe stanowisko',
       newSchool: 'Nowa szkoła',
       newCertificate: 'Nowy certyfikat lub kurs',
+      certType: 'Rodzaj wpisu',
+      typeCert: 'Certyfikat',
+      typeCourse: 'Kurs',
       iCertName: 'Nazwa certyfikatu lub kursu',
       phCertName: 'np. Prawo jazdy kat. C, Excel – poziom zaawansowany',
       iIssuer: 'Organizator / wystawca',
@@ -278,6 +281,9 @@ window.CVI18N = (() => {
       newJob: 'Нова посада',
       newSchool: 'Новий навчальний заклад',
       newCertificate: 'Новий сертифікат або курс',
+      certType: 'Тип запису',
+      typeCert: 'Сертифікат',
+      typeCourse: 'Курс',
       iCertName: 'Назва сертифіката або курсу',
       phCertName: 'напр. Посвідчення водія кат. C, Excel – просунутий рівень',
       iIssuer: 'Організатор / видавець',
@@ -442,6 +448,9 @@ window.CVI18N = (() => {
       newJob: 'New job',
       newSchool: 'New school',
       newCertificate: 'New certificate or course',
+      certType: 'Entry type',
+      typeCert: 'Certificate',
+      typeCourse: 'Course',
       iCertName: 'Certificate or course name',
       phCertName: 'e.g. Forklift licence, Advanced Excel',
       iIssuer: 'Provider / issuer',
@@ -511,6 +520,10 @@ window.CVI18N = (() => {
       experience: 'Doświadczenie',
       education: 'Wykształcenie',
       certificates: 'Certyfikaty i kursy',
+      certsOnly: 'Certyfikaty',
+      coursesOnly: 'Kursy',
+      typeCert: 'Certyfikat',
+      typeCourse: 'Kurs',
       skills: 'Umiejętności',
       languages: 'Języki',
       interests: 'Zainteresowania',
@@ -538,6 +551,10 @@ window.CVI18N = (() => {
       experience: 'Досвід роботи',
       education: 'Освіта',
       certificates: 'Сертифікати та курси',
+      certsOnly: 'Сертифікати',
+      coursesOnly: 'Курси',
+      typeCert: 'Сертифікат',
+      typeCourse: 'Курс',
       skills: 'Навички',
       languages: 'Мови',
       interests: 'Інтереси',
@@ -565,6 +582,10 @@ window.CVI18N = (() => {
       experience: 'Experience',
       education: 'Education',
       certificates: 'Certificates and courses',
+      certsOnly: 'Certificates',
+      coursesOnly: 'Courses',
+      typeCert: 'Certificate',
+      typeCourse: 'Course',
       skills: 'Skills',
       languages: 'Languages',
       interests: 'Interests',
@@ -760,8 +781,8 @@ window.CVI18N = (() => {
         ],
         education: [{ school: 'Politechnika Warszawska', degree: 'Informatyka, inżynier', start: '2015', end: '2019' }],
         certificates: [
-          { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
-          { name: 'Kurs dostępności cyfrowej (WCAG 2.1)', issuer: 'szkolenie online', date: '2022' },
+          { type: 'cert', name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
+          { type: 'course', name: 'Dostępność cyfrowa (WCAG 2.1)', issuer: 'szkolenie online', date: '2022' },
         ],
         skills: [
           { name: 'JavaScript / TypeScript', level: '5' }, { name: 'React', level: '5' },
@@ -810,8 +831,8 @@ window.CVI18N = (() => {
         ],
         education: [{ school: 'Київський політехнічний інститут', degree: 'Комп’ютерні науки, бакалавр', start: '2015', end: '2019' }],
         certificates: [
-          { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
-          { name: 'Курс польської мови для IT (B2)', issuer: 'онлайн-курс', date: '2022' },
+          { type: 'cert', name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
+          { type: 'course', name: 'Польська мова для IT (B2)', issuer: 'онлайн-навчання', date: '2022' },
         ],
         skills: [
           { name: 'JavaScript / TypeScript', level: '5' }, { name: 'React', level: '5' },
@@ -860,8 +881,8 @@ window.CVI18N = (() => {
         ],
         education: [{ school: 'University of Manchester', degree: 'BSc Computer Science', start: '2015', end: '2019' }],
         certificates: [
-          { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
-          { name: 'Web Accessibility (WCAG 2.1) course', issuer: 'online course', date: '2022' },
+          { type: 'cert', name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', date: '2023' },
+          { type: 'course', name: 'Web Accessibility (WCAG 2.1)', issuer: 'online training', date: '2022' },
         ],
         skills: [
           { name: 'JavaScript / TypeScript', level: '5' }, { name: 'React', level: '5' },
@@ -898,5 +919,17 @@ window.CVI18N = (() => {
     return 'pl';
   }
 
-  return { LANGS, UI, DOC, DRAFT, SAMPLES, CURRENT_JOB, detectLang };
+  // Heading and per-entry label for the certificates/courses section: the
+  // heading names only the kinds present, and entries are labelled only when
+  // both kinds are mixed. Entries saved before the type existed count as certificates.
+  function certSection(entries, doc) {
+    const kind = (c) => (c.type === 'course' ? 'course' : 'cert');
+    const kinds = new Set(entries.map(kind));
+    const mixed = kinds.size > 1;
+    const heading = mixed ? doc.certificates : kinds.has('course') ? doc.coursesOnly : doc.certsOnly;
+    const label = (c) => (mixed ? (kind(c) === 'course' ? doc.typeCourse : doc.typeCert) : '');
+    return { heading, label };
+  }
+
+  return { LANGS, UI, DOC, DRAFT, SAMPLES, CURRENT_JOB, detectLang, certSection };
 })();
