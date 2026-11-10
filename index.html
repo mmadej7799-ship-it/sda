@@ -103,6 +103,14 @@
         </div>
       </details>
 
+      <details class="card" data-list="certificates">
+        <summary><span data-i18n="secCertificates">Certyfikaty i kursy</span><span class="count"></span></summary>
+        <div class="card-body">
+          <div class="list"></div>
+          <button type="button" class="btn btn-add" data-add="certificates" data-i18n="addCertificate">+ Dodaj certyfikat lub kurs</button>
+        </div>
+      </details>
+
       <details class="card" data-list="skills">
         <summary><span data-i18n="secSkills">Umiejętności</span><span class="count"></span></summary>
         <div class="card-body">
@@ -290,6 +298,24 @@
         <label><span data-i18n="iDegree">Kierunek / stopień</span><input data-field="degree" data-title="2"></label>
         <label><span data-i18n="iFrom">Od</span><input data-field="start" inputmode="numeric"></label>
         <label><span data-i18n="iTo">Do</span><input data-field="end"></label>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-certificates">
+    <div class="item">
+      <div class="item-head">
+        <strong class="item-title" data-i18n-attr="data-placeholder:newCertificate"></strong>
+        <div class="item-actions">
+          <button type="button" class="icon-btn" data-move="-1" data-i18n-attr="aria-label:moveUp">↑</button>
+          <button type="button" class="icon-btn" data-move="1" data-i18n-attr="aria-label:moveDown">↓</button>
+          <button type="button" class="icon-btn danger" data-remove data-i18n-attr="aria-label:remove">✕</button>
+        </div>
+      </div>
+      <label><span data-i18n="iCertName">Nazwa certyfikatu lub kursu</span><input data-field="name" data-title="1" data-i18n-attr="placeholder:phCertName"></label>
+      <div class="grid">
+        <label><span data-i18n="iIssuer">Organizator / wystawca</span><input data-field="issuer" data-title="2" data-i18n-attr="placeholder:phIssuer"></label>
+        <label><span data-i18n="iCertDate">Data</span><input data-field="date" data-i18n-attr="placeholder:phCertDate"></label>
       </div>
     </div>
   </template>

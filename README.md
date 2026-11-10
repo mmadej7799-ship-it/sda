@@ -10,7 +10,7 @@ Otwórz `index.html` w przeglądarce (albo uruchom `python3 -m http.server` i we
 
 - Formularz z podglądem CV na żywo (format A4, skalowany do szerokości ekranu)
 - Na telefonie: zakładki **Edycja / Podgląd** na dole ekranu, zwijane sekcje formularza, duże pola dotykowe
-- Sekcje: dane osobowe, zdjęcie, podsumowanie, doświadczenie, wykształcenie, umiejętności (z poziomem), języki, zainteresowania, klauzula RODO
+- Sekcje: dane osobowe, zdjęcie, podsumowanie, doświadczenie, wykształcenie, certyfikaty i kursy, umiejętności (z poziomem), języki, zainteresowania, klauzula RODO
 - 4 szablony (Nowoczesny, Klasyczny, Minimalny, Wyrazisty) i wybór koloru akcentu
 - Dodawanie, usuwanie i zmiana kolejności pozycji
 - Automatyczny zapis w przeglądarce (localStorage)

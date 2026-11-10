@@ -262,6 +262,15 @@ window.CVDocx = (() => {
       });
     }
 
+    const certs = filled(state.certificates, ['name', 'issuer']);
+    if (certs.length) {
+      out.push(heading(doc.certificates));
+      certs.forEach((c) => {
+        out.push(entryHead(c.name.trim() || c.issuer.trim(), (c.date || '').trim()));
+        if (c.name.trim() && c.issuer.trim()) out.push(para(run(c.issuer.trim(), { color: '475569' }), { after: 120 }));
+      });
+    }
+
     const skills = filled(state.skills, ['name']);
     if (skills.length) {
       out.push(heading(doc.skills));

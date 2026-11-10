@@ -2,7 +2,7 @@
   'use strict';
 
   const STORAGE_KEY = 'cv-builder:v1';
-  const LISTS = ['experience', 'education', 'skills', 'languages'];
+  const LISTS = ['experience', 'education', 'certificates', 'skills', 'languages'];
   const SIMPLE_FIELDS = [
     'fullName', 'title', 'email', 'phone', 'location', 'website',
     'summary', 'interests', 'consent',
@@ -34,7 +34,7 @@
     photo: '', summary: '', interests: '',
     consentEnabled: true, consent: DOC[lang].consent,
     skillBars: true,
-    experience: [], education: [], skills: [], languages: [],
+    experience: [], education: [], certificates: [], skills: [], languages: [],
     template: 'modern', accent: '#2563eb',
     letter: emptyLetter(lang),
     doc: 'cv',
@@ -348,6 +348,19 @@
     }).join('');
   }
 
+  function certificatesHtml() {
+    return filled(state.certificates, ['name', 'issuer']).map((c) => `
+      <div class="entry">
+        <div class="entry-head">
+          <div>
+            <div class="entry-title">${esc(c.name)}</div>
+            <div class="entry-sub">${esc(c.issuer)}</div>
+          </div>
+          <div class="entry-date">${esc((c.date || '').trim())}</div>
+        </div>
+      </div>`).join('');
+  }
+
   function educationHtml() {
     return filled(state.education, ['school', 'degree']).map((e) => `
       <div class="entry">
@@ -407,6 +420,7 @@
         ${section(d('profile'), summaryHtml())}
         ${section(d('experience'), experienceHtml())}
         ${section(d('education'), educationHtml())}
+        ${section(d('certificates'), certificatesHtml())}
         ${consentHtml()}
       </div>`,
 
@@ -423,6 +437,7 @@
         ${section(d('profile'), summaryHtml())}
         ${section(d('experience'), experienceHtml())}
         ${section(d('education'), educationHtml())}
+        ${section(d('certificates'), certificatesHtml())}
         ${skills && side.trim() ? `<div class="two-col"><div>${skills}</div><div>${side}</div></div>` : skills + side}
         ${consentHtml()}`;
     },
@@ -445,6 +460,7 @@
         ${row(d('profile'), summaryHtml())}
         ${row(d('experience'), experienceHtml())}
         ${row(d('education'), educationHtml())}
+        ${row(d('certificates'), certificatesHtml())}
         ${row(d('skills'), skillsHtml())}
         ${row(d('languages'), languagesHtml())}
         ${row(d('interests'), interestsHtml())}
@@ -466,6 +482,7 @@
           ${section(d('profile'), summaryHtml())}
           ${section(d('experience'), experienceHtml())}
           ${section(d('education'), educationHtml())}
+          ${section(d('certificates'), certificatesHtml())}
         </div>
         <aside class="col-side">
           ${section(d('skills'), skillsHtml())}
@@ -895,6 +912,9 @@
     });
     filled(state.education, ['school', 'degree']).forEach((e) => {
       lines.push(`Education: ${[e.school, e.degree].map((s) => s.trim()).filter(Boolean).join(', ')} (${span(e)})`);
+    });
+    filled(state.certificates, ['name', 'issuer']).forEach((c) => {
+      lines.push(`Certificate/course: ${[c.name, c.issuer, c.date].map((s) => (s || '').trim()).filter(Boolean).join(', ')}`);
     });
     const skills = filled(state.skills, ['name'])
       .map((s) => (state.skillBars ? `${s.name.trim()} (${s.level}/5)` : s.name.trim()));
