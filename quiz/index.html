@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C8102E">
+<title>Quiz DASIE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+<div class="tel">
+  <header>
+    <div class="znak"><span class="krzyz"></span><span>Quiz DASIE</span></div>
+    <span id="status" class="status ukryte">Łączenie…</span>
+  </header>
+  <main id="widok"></main>
+  <p id="link-prow" class="wskazowka ukryte" style="text-align:center;margin:18px 0 0">Prowadzący? <a href="prowadzacy.html" style="color:var(--granat)">Otwórz ekran prowadzącego</a></p>
+</div>
+<script src="lib/mqtt.min.js"></script>
+<script src="wspolne.js"></script>
+<script src="uczestnik.js"></script>
+</body>
+</html>
