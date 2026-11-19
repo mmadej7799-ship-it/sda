@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz DASIE · prowadzący</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+<div class="ekran">
+  <header>
+    <div class="znak"><span class="krzyz"></span><span>Quiz DASIE · PCK</span></div>
+    <div class="prawo">
+      <span id="dolacz-info" class="wskazowka ukryte"></span>
+      <span id="status" class="status">Łączenie…</span>
+    </div>
+  </header>
+
+  <main id="widok"></main>
+
+  <footer id="stopka" class="ukryte">
+    <div class="grupa">
+      <button id="btn-glowny" class="przycisk">Dalej ▶</button>
+      <button id="btn-drugi" class="przycisk drugi ukryte"></button>
+      <span class="wskazowka" id="podpowiedz">Spacja lub strzałka w prawo = Dalej</span>
+    </div>
+    <div class="grupa">
+      <button id="btn-wykres" class="przycisk drugi" title="Ukryj lub pokaż wykres podczas głosowania">Wykres na żywo: wł.</button>
+      <button id="btn-pelny" class="przycisk drugi" title="Pełny ekran (klawisz F)">Pełny ekran</button>
+      <button id="btn-koniec" class="przycisk drugi">Zakończ quiz</button>
+    </div>
+  </footer>
+</div>
+
+<script src="lib/mqtt.min.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="pytania.js"></script>
+<script src="wspolne.js"></script>
+<script src="prowadzacy.js"></script>
+</body>
+</html>
