@@ -132,4 +132,70 @@ window.ZESTAWY = {
       }
     ]
   }
+  ,
+  w3: {
+    tytul: 'Quiz wiedzy · prawo, słowniczek, ankieta, Copilot, AI',
+    pytania: [
+      {
+        tekst: 'W piśmie jest zdanie „Pani A., 78 lat, choruje na cukrzycę”. Czym w RODO są dane o zdrowiu?',
+        odp: ['Danymi zwykłymi, jak imię', 'Danymi publicznymi', 'Danymi szczególnej kategorii (art. 9)', 'Danymi anonimowymi'],
+        dobra: 2,
+        wyjasnienie: 'Zdrowie to dane szczególnej kategorii (art. 9 RODO), a sprawy karne chroni art. 10. Takich danych nie wpisujemy do czatu.'
+      },
+      {
+        tekst: 'Co nakazuje pracodawcy art. 209¹ Kodeksu pracy?',
+        odp: ['Zapewnić środki do pierwszej pomocy i wyznaczyć pracowników do jej udzielania', 'Kupić każdemu apteczkę samochodową', 'Wysłać wszystkich na kurs ratownika medycznego', 'Zatrudnić pielęgniarkę w każdym biurze'],
+        dobra: 0,
+        wyjasnienie: 'Środki do pierwszej pomocy i wyznaczeni pracownicy. Ten sam przepis dotyczy też ochrony ppoż. i ewakuacji, co Copilot w ćwiczeniu pominął.'
+      },
+      {
+        tekst: 'Słowniczek AI: czym jest token?',
+        odp: ['Hasłem do konta Microsoft', 'Jednostką płatności za Copilota', 'Kodem QR do logowania', 'Kawałkiem tekstu: słowem, jego częścią albo znakiem'],
+        dobra: 3,
+        wyjasnienie: 'Model czyta i liczy w tokenach, nie w słowach. Po polsku jedno słowo to często 2–3 tokeny, dlatego limity długości liczy się w tokenach.'
+      },
+      {
+        tekst: 'Copilot odpowiada na podstawie pliku dodanego do notesu, a nie z pamięci. Jak to się nazywa?',
+        odp: ['Halucynacja', 'Uziemienie (grounding)', 'Multimodalność', 'Dane treningowe'],
+        dobra: 1,
+        wyjasnienie: 'Uziemienie: odpowiedź oparta na wskazanych materiałach. Mniej zgadywania, więcej faktów z Twoich plików.'
+      },
+      {
+        tekst: 'Ile osób z naszej ankiety (14 odpowiedzi) przetwarza w pracy dane osobowe beneficjentów?',
+        odp: ['3', '7', '13', '14'],
+        dobra: 2,
+        wyjasnienie: '13 z 14, w tym 8 często. A zasady, jakich danych nie wolno wpisywać do AI, zna tylko 5 osób.'
+      },
+      {
+        tekst: 'Czego najbardziej obawia się nasz zespół przy korzystaniu z AI (ankieta)?',
+        odp: ['Wycieku danych', 'Że AI zastąpi moją pracę', 'Że nie dam rady się nauczyć', 'Wysokich kosztów'],
+        dobra: 0,
+        wyjasnienie: 'Wyciek danych wskazało 10 osób, błędy w treści 7. Utraty pracy obawia się 1 osoba, a nauki nikt.'
+      },
+      {
+        tekst: 'Wgrałeś do Copilot Chat plik Excel i poprosiłeś o poprawki. Co stanie się z Twoim plikiem?',
+        odp: ['Copilot sam go nadpisze', 'Zmieni się po kliknięciu zielonej tarczy', 'Zostanie usunięty z komputera', 'Nic: Copilot go czyta, wynik kopiujesz i sprawdzasz sam'],
+        dobra: 3,
+        wyjasnienie: 'Copilot Chat nie nadpisuje Twojego Excela ani Worda. „Eksportuj do” tworzy nowy plik. Wynik przenosisz i sprawdzasz Ty.'
+      },
+      {
+        tekst: 'Co oznacza zielona tarcza u góry czatu Copilota?',
+        odp: ['Program antywirusowy jest włączony', 'Ochronę danych firmowych na koncie służbowym', 'Pracę bez internetu', 'Płatną licencję Microsoft 365 Copilot'],
+        dobra: 1,
+        wyjasnienie: 'Ochrona danych firmowych: Microsoft nie trenuje modeli na Twoich rozmowach. Ale to nie zwalnia z RODO.'
+      },
+      {
+        tekst: 'Które słowo Cambridge Dictionary wybrał słowem roku 2023 w związku z AI?',
+        odp: ['Hallucinate (halucynować)', 'Prompt', 'Chatbot', 'Algorithm'],
+        dobra: 0,
+        wyjasnienie: '„Hallucinate”: AI halucynuje, gdy podaje fałszywe informacje tak, jakby były prawdziwe. Pewny ton to nie dowód.'
+      },
+      {
+        tekst: 'Czatbot Air Canada podał klientowi błędne zasady zniżki. Kto według trybunału odpowiadał za tę informację (2024)?',
+        odp: ['Czatbot, sam za siebie', 'Producent modelu AI', 'Linia lotnicza, do której należy czatbot', 'Nikt, to był błąd techniczny'],
+        dobra: 2,
+        wyjasnienie: 'Firma odpowiada za to, co mówi jej czatbot (Moffatt v. Air Canada, 2024 BCCRT 149). Linia musiała zwrócić różnicę w cenie.'
+      }
+    ]
+  }
 };

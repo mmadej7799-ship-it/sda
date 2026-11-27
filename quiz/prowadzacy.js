@@ -9,7 +9,9 @@
   var klient = null;       // połączenie MQTT
   var T = null;            // tematy
   var polaczony = false;
-  var wybranyZestaw = 'w1';
+  // ?zestaw=w3 w adresie od razu zaznacza wybrany zestaw pytań
+  var zParam = new URLSearchParams(location.search).get('zestaw');
+  var wybranyZestaw = zParam && window.ZESTAWY[zParam] ? zParam : 'w1';
   var wybranyCzas = 30;
   var potwierdzKoniec = false;
 
